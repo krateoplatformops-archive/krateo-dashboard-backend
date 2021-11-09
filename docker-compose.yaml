@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+  kerberus.be:
+    build: .
+    container_name: kerberus.be
+    image: prokjectkerberus/kerberus-dashboard-backend
+    restart: always
+    environment:
+      - POSTGRES_HOST=host.docker.internal
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=maurosala
+      - POSTGRES_PASSWORD=
+      - K8S_MINIKUBE_TOKEN=token
+    ports:
+      - 7000:7000
