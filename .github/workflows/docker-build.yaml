@@ -6,7 +6,7 @@ on:
       - "*"
 
 env:
-  IMAGE_NAME: kerberus-dashboard-backend
+  IMAGE_NAME: krateo-dashboard-backend
 
 jobs:
   push:
@@ -39,7 +39,7 @@ jobs:
           file: ./Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: ghcr.io/projectkerberus/kerberus-dashboard-backend:${{steps.tag.outputs.tag}}
+          tags: ghcr.io/krateoplatformops/krateo-dashboard-backend:${{steps.tag.outputs.tag}}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
       - name: Image digest

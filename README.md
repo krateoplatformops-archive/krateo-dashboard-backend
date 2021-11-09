@@ -1,4 +1,4 @@
-# Kerberus Dashboard Backend
+# Krateo Dashboard Backend
 
 ### Preinstalled plugins
 
@@ -12,10 +12,10 @@
 version: '3.7'
 
 services:
-  kerberus.be:
+  krateo.be:
     build: .
-    container_name: kerberus.be
-    image: prokjectkerberus/kerberus-dashboard-backend
+    container_name: krateo.be
+    image: krateo/krateo-dashboard-backend
     restart: always
     environment:
       - POSTGRES_HOST=host.docker.internal
