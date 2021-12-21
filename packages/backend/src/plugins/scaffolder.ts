@@ -28,6 +28,7 @@ import {
   createArgoCDAction,
   creategitHubProtectionAction,
   createSonarCloudAction,
+  createKeptnProjectAction,
 } from './scaffolder/actions';
 
 export default async function createPlugin({
@@ -57,6 +58,7 @@ export default async function createPlugin({
     createArgoCDAction(),
     createSonarCloudAction(),
     creategitHubProtectionAction(),
+    createKeptnProjectAction(),
   ];
 
   return await createRouter({

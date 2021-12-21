@@ -19,6 +19,7 @@ RUN pip3.8 install mkdocs-techdocs-core
 RUN pip3.8 install cookiecutter && \
     apt remove -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev libbz2-dev g++ python-pip python-dev && \
     rm -rf /var/cache/apt/* /tmp/Python-3.8.2
+RUN curl -sL https://get.keptn.sh | KEPTN_VERSION=0.11.3 bash
 
 WORKDIR /app
 COPY --from=react-build /app/packages/backend/dist/skeleton.tar.gz /app/package.json ./
