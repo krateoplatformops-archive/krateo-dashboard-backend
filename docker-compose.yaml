@@ -13,4 +13,4 @@ services:
       - POSTGRES_PASSWORD=
       - K8S_MINIKUBE_TOKEN=token
     ports:
-      - 7000:7000
+      - 7007:7007

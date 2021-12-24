@@ -25,6 +25,6 @@ export default async function createPlugin({
   return await createRouter({
     logger,
     config,
-    appPackageName: 'app',
+    appPackageName: 'example-app',
   });
 }
