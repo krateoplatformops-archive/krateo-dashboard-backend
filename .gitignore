@@ -136,3 +136,7 @@ site
 
 # e2e tests
 cypress/cypress/*
+
+__app-config.yaml
+_app-config.yaml
+.dccache

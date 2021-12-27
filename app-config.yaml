@@ -153,7 +153,7 @@ allure:
 integrations:
   github:
     - host: github.com
-      token: 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
+      token: ${GITHUB_TOKEN}
     ### Example for how to add your GitHub Enterprise instance using the API:
     # - host: ghe.example.net
     #   apiBaseUrl: https://ghe.example.net/api/v3
@@ -226,32 +226,16 @@ catalog:
       #         filter: (&(objectClass=some-group-class)(!(groupType=email)))
     microsoftGraphOrg:
       ### Example for how to add your Microsoft Graph tenant
-      providers:
-        - target: https://graph.microsoft.com/v1.0
-          authority: https://login.microsoftonline.com
-          # If you don't know you tenantId, you can use Microsoft Graph Explorer
-          # to query it
-          tenantId: 0491023f-93a0-4ee2-a9e8-42b5ba8a3f53
-          # Client Id and Secret can be created under Certificates & secrets in
-          # the App registration in the Microsoft Azure Portal.
-          clientId: f55a8d66-e554-4e0f-b7c0-4f0326451e04
-          clientSecret: h5nziLF4wG4.~tkb1l6V~2I01~zb-_A7iW
-          # Optional filter for user, see Microsoft Graph API for the syntax
-          # See https://docs.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0#properties
-          # and for the syntax https://docs.microsoft.com/en-us/graph/query-parameters#filter-parameter
-          userFilter: accountEnabled eq true
-          # Optional filter for group, see Microsoft Graph API for the syntax
-          # See https://docs.microsoft.com/en-us/graph/api/resources/group?view=graph-rest-1.0#properties
-          # groupFilter: (securityEnabled eq false) and (displayName eq Kerberus)
-          groupFilter: (securityEnabled eq false) and (displayName eq 'Kerberus')
+      #providers:
+      #  - target: https://graph.microsoft.com/v1.0
+      #    authority: https://login.microsoftonline.com
+      #    tenantId: ${MICROSOFT_GRAPH_TENANT_ID}
+      #    clientId: ${MICROSOFT_GRAPH_CLIENT_ID}
+      #    clientSecret: ${MICROSOFT_GRAPH_CLIENT_SECRET_TOKEN}
+      #    userFilter: accountEnabled eq true and userType eq 'member'
+      #    groupFilter: securityEnabled eq false and mailEnabled eq true and groupTypes/any(c:c+eq+'Unified')
 
   locations:
-    - type: microsoft-graph-org
-      target: https://graph.microsoft.com/v1.0
-      # If you catalog doesn't allow to import Group and User entities by
-      # default, allow them here
-      rules:
-        - allow: [Group, User]
     # Add a location here to ingest it, for example from a URL:
     #
     #     - type: url
@@ -266,39 +250,36 @@ catalog:
     # backend, for example packages/backend/.
 
     # Backstage example components
-    # - type: file
-    #   target: ../catalog-model/examples/all-components.yaml
-    # # Example component for github-actions and TechDocs
-    # - type: file
-    #   target: ../../plugins/github-actions/examples/sample.yaml
-    # # Example component for TechDocs
-    # - type: file
-    #   target: ../../plugins/techdocs-backend/examples/documented-component/catalog-info.yaml
-    # # Backstage example APIs
-    # - type: file
-    #   target: ../catalog-model/examples/all-apis.yaml
-    # # Backstage example resources
-    # - type: file
-    #   target: ../catalog-model/examples/all-resources.yaml
-    # # Backstage example systems
-    # - type: file
-    #   target: ../catalog-model/examples/all-systems.yaml
-    # # Backstage example domains
-    # - type: file
-    #   target: ../catalog-model/examples/all-domains.yaml
-    # # Backstage example templates
-    # - type: file
-    #   target: ../../plugins/scaffolder-backend/sample-templates/all-templates.yaml
-    # # Backstage example groups and users
-    # - type: file
-    #   target: ../catalog-model/examples/acme-corp.yaml
-    # # Backstage end-to-end tests of TechDocs
-    # - type: file
-    #   target: ../../cypress/e2e-fixture.catalog.info.yaml
+    - type: file
+      target: ../catalog-model/examples/all-components.yaml
+    # Example component for github-actions and TechDocs
+    - type: file
+      target: ../../plugins/github-actions/examples/sample.yaml
+    # Example component for TechDocs
+    - type: file
+      target: ../../plugins/techdocs-backend/examples/documented-component/catalog-info.yaml
+    # Backstage example APIs
+    - type: file
+      target: ../catalog-model/examples/all-apis.yaml
+    # Backstage example resources
+    - type: file
+      target: ../catalog-model/examples/all-resources.yaml
+    # Backstage example systems
+    - type: file
+      target: ../catalog-model/examples/all-systems.yaml
+    # Backstage example domains
+    - type: file
+      target: ../catalog-model/examples/all-domains.yaml
+    # Backstage example templates
+    - type: file
+      target: ../../plugins/scaffolder-backend/sample-templates/all-templates.yaml
+    # Backstage example groups and users
+    - type: file
+      target: ../catalog-model/examples/acme-corp.yaml
+    # Backstage end-to-end tests of TechDocs
+    - type: file
+      target: ../../cypress/e2e-fixture.catalog.info.yaml
 scaffolder:
-  github:
-    token: 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
-    visibility: public # or 'internal' or 'private'
   # Use to customize default commit author info used when new components are created
   # defaultAuthor:
   #   name: Scaffolder
@@ -327,10 +308,9 @@ auth:
         clientSecret: ${AUTH_GOOGLE_CLIENT_SECRET}
     github:
       development:
-        appOrigin: http://localhost:8000
-        secure: false
-        clientId: 6b122931b6648eeffd51
-        clientSecret: 60b2945b23c4258152abf9f88c971ee848f5d910
+        clientId: ${AUTH_GITHUB_CLIENT_ID}
+        clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
+        enterpriseInstanceUrl: ${AUTH_GITHUB_ENTERPRISE_INSTANCE_URL}
     gitlab:
       development:
         clientId: ${AUTH_GITLAB_CLIENT_ID}
@@ -377,9 +357,9 @@ auth:
         domain: ${AUTH_AUTH0_DOMAIN}
     microsoft:
       development:
-        clientId: f55a8d66-e554-4e0f-b7c0-4f0326451e04
-        clientSecret: h5nziLF4wG4.~tkb1l6V~2I01~zb-_A7iW
-        tenantId: 0491023f-93a0-4ee2-a9e8-42b5ba8a3f53
+        clientId: ${AUTH_MICROSOFT_CLIENT_ID}
+        clientSecret: ${AUTH_MICROSOFT_CLIENT_SECRET}
+        tenantId: ${AUTH_MICROSOFT_TENANT_ID}
     onelogin:
       development:
         clientId: ${AUTH_ONELOGIN_CLIENT_ID}
