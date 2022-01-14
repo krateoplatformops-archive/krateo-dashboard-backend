@@ -106,13 +106,31 @@ proxy:
     headers:
       Authorization: ${AIRFLOW_BASIC_AUTH_HEADER}
 
-  "/argocd/api":
-    target: http://argocd-server.argo-system.svc/api/v1/
+  # "/argocd/api":
+  #   target: https://argocd.krateo.io/api/v1/
+  #   changeOrigin: true
+  #   secure: false
+  #   headers:
+  #     Cookie: "argocd.token="
+
+  "/argocd/api/applications/name":
+    target: https://argocd.krateo.io/api/v1/applications
     changeOrigin: true
     secure: false
     headers:
-      Cookie:
-        $env: ARGOCD_AUTH_TOKEN
+      Cookie: "argocd.token="
+
+  "/keptn-api":
+    target: http://keptn.krateoplatformops.io/api/v1/
+    secure: false
+    headers:
+      x-token: "<token>"
+
+  "/keptn":
+    target: http://keptn.krateoplatformops.io/bridge/api/
+    secure: false
+    headers:
+      Authorization: "Basic <base_64_token>"
 
 organization:
   name: My Company
