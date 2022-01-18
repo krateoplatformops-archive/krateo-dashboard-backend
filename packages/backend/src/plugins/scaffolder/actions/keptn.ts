@@ -55,7 +55,7 @@ export const createKeptnProjectAction = () => {
       },
     },
     async handler(ctx) {
-      const fullUrl = `https://${ctx.input.host.substring(1)}`;
+      const fullUrl = `https://${ctx.input.host}`;
       const url = new URL(fullUrl);
       const owner = url.searchParams.get('owner');
       const repo = url.searchParams.get('repo');
@@ -67,15 +67,14 @@ export const createKeptnProjectAction = () => {
       const keptnImage = ctx.input.keptnImage;
       const keptnImageTag = ctx.input.keptnImageTag;
 
-      // ctx.logger.info(JSON.stringify(ctx.input, null, 2));
+      // ctx.logger.info(base);
+      ctx.logger.info(repoURL);
+      ctx.logger.info(JSON.stringify(ctx.input, null, 2));
 
-      // ctx.logger.info(`Get Keptn Cli`);
-      // await exec('curl -sL https://get.keptn.sh | KEPTN_VERSION=0.11.3 bash');
+      ctx.logger.info(`Get Keptn Cli`);
+      await exec('curl -sL https://get.keptn.sh | KEPTN_VERSION=0.11.3 bash');
 
       ctx.logger.info(`Authenticate`);
-      // ctx.logger.info(
-      //   `keptn auth --endpoint=http://${keptnHost}/api --api-token=${keptnApiToken}`,
-      // );
       await exec(
         `keptn auth --endpoint=http://${keptnHost}/api --api-token=${keptnApiToken}`,
       );

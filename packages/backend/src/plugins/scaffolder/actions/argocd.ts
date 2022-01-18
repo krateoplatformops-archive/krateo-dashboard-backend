@@ -49,7 +49,7 @@ export const createArgoCDAction = () => {
       // await delay(7000);
       // ctx.logger.info(`We assume it was created`);
 
-      const fullUrl = `https://${ctx.input.host.substring(1)}`;
+      const fullUrl = `https://${ctx.input.host}`;
       const url = new URL(fullUrl);
       const owner = url.searchParams.get('owner');
       const repo = url.searchParams.get('repo');
