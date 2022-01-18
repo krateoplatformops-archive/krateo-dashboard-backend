@@ -36,7 +36,7 @@ export const createKeptnProjectAction = () => {
             title: 'Keptn Host',
             description: 'Keptn Host',
           },
-          keptnToken: {
+          keptnApiToken: {
             type: 'string',
             title: 'Keptn Host',
             description: 'Keptn Host',
@@ -63,14 +63,19 @@ export const createKeptnProjectAction = () => {
       const repoURL = `${base}/${owner}/${repo}`;
 
       const keptnHost = ctx.input.keptnHost;
-      const keptnApiToken = ctx.input.keptnToken;
+      const keptnApiToken = ctx.input.keptnApiToken;
       const keptnImage = ctx.input.keptnImage;
       const keptnImageTag = ctx.input.keptnImageTag;
+
+      // ctx.logger.info(JSON.stringify(ctx.input, null, 2));
 
       // ctx.logger.info(`Get Keptn Cli`);
       // await exec('curl -sL https://get.keptn.sh | KEPTN_VERSION=0.11.3 bash');
 
       ctx.logger.info(`Authenticate`);
+      // ctx.logger.info(
+      //   `keptn auth --endpoint=http://${keptnHost}/api --api-token=${keptnApiToken}`,
+      // );
       await exec(
         `keptn auth --endpoint=http://${keptnHost}/api --api-token=${keptnApiToken}`,
       );

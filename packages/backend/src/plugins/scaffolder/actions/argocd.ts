@@ -83,6 +83,7 @@ export const createArgoCDAction = () => {
 
       ctx.logger.info(`Creating application on ArgoCD whit this payload:`);
       ctx.logger.info(`${JSON.stringify(payload, null, 4)}`);
+      ctx.logger.info(`${process.env.ARGOCD_AUTH_TOKEN}`);
 
       await axiosInstance.post(
         `http://krateo-module-core-argocd-server.krateo-system.svc:443/api/v1/applications`,
@@ -90,7 +91,7 @@ export const createArgoCDAction = () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            Cookie: `${process.env.ARGOCD_AUTH_TOKEN}`,
+            Authorization: `Bearer ${process.env.ARGOCD_AUTH_TOKEN}`,
           },
         },
       );
