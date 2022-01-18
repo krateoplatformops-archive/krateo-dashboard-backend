@@ -85,7 +85,7 @@ export const createArgoCDAction = () => {
       ctx.logger.info(`${JSON.stringify(payload, null, 4)}`);
 
       await axiosInstance.post(
-        `http://krateo-module-core-argocd-server.krateo-system.svc/api/v1/applications`,
+        `http://krateo-module-core-argocd-server.krateo-system.svc:443/api/v1/applications`,
         payload,
         {
           headers: {
