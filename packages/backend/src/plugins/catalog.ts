@@ -19,6 +19,7 @@ import { ScaffolderEntitiesProcessor } from '@backstage/plugin-scaffolder-backen
 import { Router } from 'express';
 import { PluginEnvironment } from '../types';
 import { MicrosoftGraphOrgReaderProcessor } from '@backstage/plugin-catalog-backend-module-msgraph';
+import { LdapOrgReaderProcessor } from '@backstage/plugin-catalog-backend-module-ldap';
 
 export default async function createPlugin(
   env: PluginEnvironment,
@@ -27,6 +28,11 @@ export default async function createPlugin(
   builder.addProcessor(new ScaffolderEntitiesProcessor());
   builder.addProcessor(
     MicrosoftGraphOrgReaderProcessor.fromConfig(env.config, {
+      logger: env.logger,
+    }),
+  );
+  builder.addProcessor(
+    LdapOrgReaderProcessor.fromConfig(env.config, {
       logger: env.logger,
     }),
   );
