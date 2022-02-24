@@ -235,6 +235,20 @@ catalog:
         #   token: ${GHE_TOKEN}
     ldapOrg:
       ### Example for how to add your enterprise LDAP server
+      providers:
+        - target: ldap://localhost:10389
+          bind:
+            dn: cn=admin,dc=planetexpress,dc=com
+            secret: GoodNewsEveryone
+          users:
+            dn: ou=people,dc=planetexpress,dc=com
+            # options:
+            #   filter: (uid=*)
+            # map:
+            #   description: l
+          groups:
+            dn: ou=people,dc=planetexpress,dc=com
+      ### Example for how to add your enterprise LDAP server
       # providers:
       #   - target: ldaps://ds.example.net
       #     bind:

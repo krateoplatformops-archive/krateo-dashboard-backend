@@ -28,6 +28,9 @@ import {
   creategitHubProtectionAction,
   createSonarCloudAction,
   createKeptnProjectAction,
+  createRoInsielAction,
+  createCloudbeesInsielAction,
+  createKeptnProjectInsielAction,
 } from './scaffolder/actions';
 
 export default async function createPlugin({
@@ -58,6 +61,13 @@ export default async function createPlugin({
     createSonarCloudAction(),
     creategitHubProtectionAction(),
     createKeptnProjectAction(),
+    createRoInsielAction(),
+    createCloudbeesInsielAction({
+      config,
+    }),
+    createKeptnProjectInsielAction({
+      config,
+    }),
   ];
 
   return await createRouter({

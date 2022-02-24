@@ -13,10 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './argocd';
-export * from './sonarcloud';
-export * from './githubprotection';
-export * from './keptn';
-export * from './ro-insiel';
-export * from './cloudbees-insiel';
-export * from './keptn-insiel';
+export { createLdapProvider, LdapEmailSignInResolver } from './provider';
+export type { LdapProviderOptions } from './provider';
