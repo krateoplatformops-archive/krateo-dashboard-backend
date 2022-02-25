@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { createTemplateAction } from '@backstage/plugin-scaffolder-backend';
+import { resolveSafeChildPath } from '@backstage/backend-common';
 const git = require('isomorphic-git');
 const http = require('isomorphic-git/http/node');
 const fs = require('fs');
