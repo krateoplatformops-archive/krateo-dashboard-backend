@@ -102,6 +102,7 @@ export const createCloudbeesInsielAction = (options: { config: Config }) => {
         guid: uuidv4(),
       });
       fs.writeFileSync(appXml, appModified, { encoding: 'utf-8' });
+      ctx.logger.info(`Created app.xml`);
 
       // Helm Chart
       const helmModified = nunjucks.render(helmXml, {
@@ -110,6 +111,7 @@ export const createCloudbeesInsielAction = (options: { config: Config }) => {
         guid: uuidv4(),
       });
       fs.writeFileSync(helmXml, helmModified, { encoding: 'utf-8' });
+      ctx.logger.info(`Created helm-chart.xml`);
 
       // calls
       const axiosInstance = axios.create({
@@ -117,34 +119,46 @@ export const createCloudbeesInsielAction = (options: { config: Config }) => {
           rejectUnauthorized: false,
         }),
       });
-
+      
       const instances = config.get('jenkins.instances');
       const cb = instances.find(i => i.name === ctx.input.masterName);
-
+      
       const token = `${cb.username}:${cb.apiKey}`;
       // app
+      //  data: Buffer.from(fs.readFileSync(appXml)),
+      
+      ctx.logger.info(`${JSON.stringify({
+        Accept: '*/*',
+        'Content-Type': `text/xml`,
+        Authorization: `Basic ${Buffer.from(token).toString('base64')}`,
+      }, null, 4)}`);
+      
       ctx.logger.info(`token: ${token}`);
-      ctx.logger.info(`url :${cb.baseUrl}/createItem?name=${ctx.input.component_id}`)
+      ctx.logger.info(`url: ${cb.baseUrl}/createItem?name=${ctx.input.component_id}`)
       await axiosInstance({
         method: 'post',
         url: `${cb.baseUrl}/createItem?name=${ctx.input.component_id}`,
         data: Buffer.from(fs.readFileSync(appXml)),
         headers: {
+          Accept: '*/*',
           'Content-Type': `text/xml`,
           Authorization: `Basic ${Buffer.from(token).toString('base64')}`,
         },
       });
+      ctx.logger.info(`App pipeline created`);
       // helm
       await axiosInstance({
         method: 'post',
-        url: `${cb.baseUrl}/createItem?name=${ctx.input.component_id}`,
+        url: `${cb.baseUrl}/createItem?name=${ctx.input.component_id}-hc`,
         data: Buffer.from(fs.readFileSync(helmXml)),
         headers: {
+          Accept: '*/*',
           'Content-Type': `text/xml`,
           Authorization: `Basic ${Buffer.from(token).toString('base64')}`,
         },
       });
-
+      ctx.logger.info(`App pipeline created`);
+      
       ctx.logger.info(`All done successfully!`);
     },
   });
