@@ -177,9 +177,9 @@ export const createRoInsielAction = () => {
         fs,
         dir: helmDir,
         remote: 'origin',
-        url: `${repoURL}-hc`,
+        url: `${repoURL}-hc.git`,
       });
-      ctx.logger.info(`✅ Add remote ${repoURL}-hc`);
+      ctx.logger.info(`✅ Add remote ${repoURL}-hc.git`);
       await git.push({
         fs,
         http,
