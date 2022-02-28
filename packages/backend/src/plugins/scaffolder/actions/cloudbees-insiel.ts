@@ -124,10 +124,10 @@ export const createCloudbeesInsielAction = (options: { config: Config }) => {
       const token = `${cb.username}:${cb.apiKey}`;
       // app
       ctx.logger.info(`token: ${token}`);
-      ctx.logger.info(`url :${cb.baseUrl}/${ctx.input.masterName}/createItem?name=${ctx.input.component_id}`)
+      ctx.logger.info(`url :${cb.baseUrl}/createItem?name=${ctx.input.component_id}`)
       await axiosInstance({
         method: 'post',
-        url: `${cb.baseUrl}/${ctx.input.masterName}/createItem?name=${ctx.input.component_id}`,
+        url: `${cb.baseUrl}/createItem?name=${ctx.input.component_id}`,
         data: Buffer.from(fs.readFileSync(appXml)),
         headers: {
           'Content-Type': `text/xml`,
@@ -137,7 +137,7 @@ export const createCloudbeesInsielAction = (options: { config: Config }) => {
       // helm
       await axiosInstance({
         method: 'post',
-        url: `${cb.baseUrl}/${ctx.input.masterName}/createItem?name=${ctx.input.component_id}`,
+        url: `${cb.baseUrl}/createItem?name=${ctx.input.component_id}`,
         data: Buffer.from(fs.readFileSync(helmXml)),
         headers: {
           'Content-Type': `text/xml`,
