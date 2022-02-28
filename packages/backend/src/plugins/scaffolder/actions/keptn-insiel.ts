@@ -97,7 +97,7 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
         },
         headers: {
           'Content-Type': `application/json`,
-          Authorization: `x-token: ${process.env.KEPTN_API_TOKEN}`,
+          'x-token': `${process.env.KEPTN_API_TOKEN}`,
         },
       });
       ctx.logger.info(`✅ Project created`);
@@ -111,7 +111,7 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
         },
         headers: {
           'Content-Type': `application/json`,
-          Authorization: `x-token: ${process.env.KEPTN_API_TOKEN}`,
+          'x-token': `${process.env.KEPTN_API_TOKEN}`,
         },
       });
       ctx.logger.info(`✅ Service created`);
