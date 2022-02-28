@@ -69,8 +69,8 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
         depth: 1,
       });
 
-      ctx.logger.info(`Get Keptn Cli`);
-      await exec('curl -sL https://get.keptn.sh | KEPTN_VERSION=0.11.4 bash');
+      // ctx.logger.info(`Get Keptn Cli`);
+      // await exec('curl -sL https://get.keptn.sh | KEPTN_VERSION=0.11.4 bash');
 
       ctx.logger.info(`Authenticate`);
       await exec(
