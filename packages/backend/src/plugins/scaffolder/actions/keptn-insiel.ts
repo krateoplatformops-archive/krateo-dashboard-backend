@@ -21,6 +21,8 @@ const fs = require('fs');
 const path = require('path');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
+import axios from 'axios';
+import * as https from 'https';
 
 export const createKeptnProjectInsielAction = (options: { config: Config }) => {
   const { config } = options;
@@ -69,26 +71,50 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
         depth: 1,
       });
 
-      // ctx.logger.info(`Get Keptn Cli`);
-      // await exec('curl -sL https://get.keptn.sh | KEPTN_VERSION=0.11.4 bash');
+      // get keptn api
+      const proxy = config.get('proxy');
+      const target = proxy['/keptn-api'].target.replace('api/v1', 'api/controlPlane/v1');
 
-      ctx.logger.info(`Authenticate`);
-      await exec(
-        `keptn auth --endpoint=https://api-service.krateo-system.svc --api-token=${process.env.KEPTN_API_TOKEN}`,
-      );
+      const axiosInstance = axios.create({
+        httpsAgent: new https.Agent({
+          rejectUnauthorized: false,
+        }),
+      });
 
-      ctx.logger.info(`Create Project`);
-      await exec(
-        `keptn create project ${repo} --shipyard=${path.join(
-          projectDir,
-          'shipyard.xml',
-        )} --git-user=${owner} --git-token=${
-          process.env.GITHUB_TOKEN
-        } --git-remote-url=${repoURL}.git`,
-      );
+      ctx.logger.info(`RepoUrl: ${repoURL}`);
+      ctx.logger.info(`Target: ${target}`);
 
-      ctx.logger.info(`Create Service`);
-      await exec(`keptn create service demo --project=${repo}`);
+      ctx.logger.info(`Creating Project`);
+      await axiosInstance({
+        method: 'post',
+        url: `${target}/project`,
+        data: {
+          gitRemoteURL: repoURL,
+          gitToken: process.env.GITHUB_TOKEN,
+          gitUser: owner,
+          name: ctx.input.component_id,
+          shipyard: Buffer.from(fs.readFileSync(path.join(projectDir, 'shipyard.yaml'))).toString('base64'),
+        },
+        headers: {
+          'Content-Type': `application/json`,
+          Authorization: `x-token: ${process.env.KEPTN_API_TOKEN}`,
+        },
+      });
+      ctx.logger.info(`✅ Project created`);
+
+      ctx.logger.info(`Creating Service`);
+      await axiosInstance({
+        method: 'post',
+        url: `${target}/project/${ctx.input.component_id}/service`,
+        data: {
+          serviceName: ctx.input.component_id,
+        },
+        headers: {
+          'Content-Type': `application/json`,
+          Authorization: `x-token: ${process.env.KEPTN_API_TOKEN}`,
+        },
+      });
+      ctx.logger.info(`✅ Service created`);
 
       ctx.logger.info(`Project created successfully! 👍`);
     },

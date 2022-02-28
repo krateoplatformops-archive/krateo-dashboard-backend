@@ -123,6 +123,8 @@ export const createCloudbeesInsielAction = (options: { config: Config }) => {
 
       const token = `${cb.username}:${cb.apiKey}`;
       // app
+      ctx.logger.info(`token: ${token}`);
+      ctx.logger.info(`url :${cb.baseUrl}/${ctx.input.masterName}/createItem?name=${ctx.input.component_id}`)
       await axiosInstance({
         method: 'post',
         url: `${cb.baseUrl}/${ctx.input.masterName}/createItem?name=${ctx.input.component_id}`,

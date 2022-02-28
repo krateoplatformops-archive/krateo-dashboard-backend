@@ -187,7 +187,16 @@ export const createRoInsielAction = () => {
         remote: 'origin',
         ref: 'main',
         onAuth: () => ({ username: process.env.GITHUB_TOKEN }),
-      });
+        onProgress: (state: any) => {
+          try {
+            ctx.logger.info(`Pushing ${state.phase}`);
+          } catch (e) {
+            ctx.logger.error(e);
+          }
+        }
+      }).catch((err: any) => {
+        ctx.logger.error(`❌ Push progress failed: ${err}`);
+      })
       ctx.logger.info(`✅ Push`);
 
       ctx.logger.info(`Well done, pushed successfully!`);
