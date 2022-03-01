@@ -88,7 +88,7 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
       ctx.logger.info(`Target: ${target}`);
 
       ctx.logger.info(`Creating Project`);
-      axiosInstance({
+      await axiosInstance({
         method: 'post',
         url: `${target}/project`,
         data: {
@@ -102,12 +102,12 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
           'Content-Type': `application/json`,
           'x-token': `${process.env.KEPTN_API_TOKEN}`,
         },
-      }).then(() => {
+      }).then(async () => {
         ctx.logger.info(`✅ Project created`);
 
         // create service
         ctx.logger.info(`Creating Service`);
-        axiosInstance({
+        await axiosInstance({
           method: 'post',
           url: `${target}/project/${ctx.input.component_id}/service`,
           data: {
