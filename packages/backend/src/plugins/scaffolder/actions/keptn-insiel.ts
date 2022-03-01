@@ -87,36 +87,41 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
       ctx.logger.info(`RepoUrl: ${repoURL}`);
       ctx.logger.info(`Target: ${target}`);
 
+      const headers = {
+        'Content-Type': `application/json`,
+        'x-token': `${process.env.KEPTN_API_TOKEN}`,
+      }
+      const projectData = {
+        gitRemoteURL: repoURL,
+        gitToken: process.env.GITHUB_TOKEN,
+        gitUser: owner,
+        name: ctx.input.component_id,
+        shipyard: Buffer.from(fs.readFileSync(path.join(projectDir, 'shipyard.yaml'))).toString('base64'),
+      }
+      const serviceData = {
+        serviceName: ctx.input.component_id,
+      }
+
+      ctx.logger.info(`Headers: ${JSON.stringify(headers, null, 4)}`);
+
       ctx.logger.info(`Creating Project`);
+      ctx.logger.info(`Data: ${JSON.stringify(projectData, null, 4)}`);
       await axiosInstance({
         method: 'post',
         url: `${target}/project`,
-        data: {
-          gitRemoteURL: repoURL,
-          gitToken: process.env.GITHUB_TOKEN,
-          gitUser: owner,
-          name: ctx.input.component_id,
-          shipyard: Buffer.from(fs.readFileSync(path.join(projectDir, 'shipyard.yaml'))).toString('base64'),
-        },
-        headers: {
-          'Content-Type': `application/json`,
-          'x-token': `${process.env.KEPTN_API_TOKEN}`,
-        },
+        data: projectData,
+        headers,
       }).then(async () => {
         ctx.logger.info(`✅ Project created`);
 
         // create service
         ctx.logger.info(`Creating Service`);
+        ctx.logger.info(`Data: ${JSON.stringify(serviceData, null, 4)}`);
         await axiosInstance({
           method: 'post',
           url: `${target}/project/${ctx.input.component_id}/service`,
-          data: {
-            serviceName: ctx.input.component_id,
-          },
-          headers: {
-            'Content-Type': `application/json`,
-            'x-token': `${process.env.KEPTN_API_TOKEN}`,
-          },
+          data: serviceData,
+          headers,
         }).then(() => {
           ctx.logger.info(`✅ Service created`);
           ctx.logger.info(`All done successfully! 👍`);

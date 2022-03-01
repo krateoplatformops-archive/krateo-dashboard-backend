@@ -157,7 +157,7 @@ export const createCloudbeesInsielAction = (options: { config: Config }) => {
           Authorization: `Basic ${Buffer.from(token).toString('base64')}`,
         },
       });
-      ctx.logger.info(`App pipeline created`);
+      ctx.logger.info(`Helm Chart pipeline created`);
       
       ctx.logger.info(`All done successfully!`);
     },
