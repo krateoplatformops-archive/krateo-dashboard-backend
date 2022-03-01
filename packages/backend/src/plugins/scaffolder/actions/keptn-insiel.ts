@@ -79,6 +79,9 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
         httpsAgent: new https.Agent({
           rejectUnauthorized: false,
         }),
+        validateStatus: (status) => {
+          return status < 500
+        }
       });
 
       ctx.logger.info(`RepoUrl: ${repoURL}`);
