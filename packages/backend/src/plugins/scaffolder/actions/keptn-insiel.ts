@@ -80,7 +80,7 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
           rejectUnauthorized: false,
         }),
         validateStatus: (status) => {
-          return status < 500
+          return status < 400
         }
       });
 
