@@ -92,7 +92,7 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
         'x-token': `${process.env.KEPTN_API_TOKEN}`,
       }
       const projectData = {
-        gitRemoteURL: repoURL,
+        gitRemoteURL: `${repoURL}-keptn`,
         gitToken: process.env.GITHUB_TOKEN,
         gitUser: owner,
         name: ctx.input.component_id,
