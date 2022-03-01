@@ -88,7 +88,7 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
       ctx.logger.info(`Target: ${target}`);
 
       ctx.logger.info(`Creating Project`);
-      await axiosInstance({
+      axiosInstance({
         method: 'post',
         url: `${target}/project`,
         data: {
@@ -102,24 +102,30 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
           'Content-Type': `application/json`,
           'x-token': `${process.env.KEPTN_API_TOKEN}`,
         },
-      });
-      ctx.logger.info(`✅ Project created`);
+      }).then(() => {
+        ctx.logger.info(`✅ Project created`);
 
-      ctx.logger.info(`Creating Service`);
-      await axiosInstance({
-        method: 'post',
-        url: `${target}/project/${ctx.input.component_id}/service`,
-        data: {
-          serviceName: ctx.input.component_id,
-        },
-        headers: {
-          'Content-Type': `application/json`,
-          'x-token': `${process.env.KEPTN_API_TOKEN}`,
-        },
-      });
-      ctx.logger.info(`✅ Service created`);
-
-      ctx.logger.info(`Project created successfully! 👍`);
+        // create service
+        ctx.logger.info(`Creating Service`);
+        axiosInstance({
+          method: 'post',
+          url: `${target}/project/${ctx.input.component_id}/service`,
+          data: {
+            serviceName: ctx.input.component_id,
+          },
+          headers: {
+            'Content-Type': `application/json`,
+            'x-token': `${process.env.KEPTN_API_TOKEN}`,
+          },
+        }).then(() => {
+          ctx.logger.info(`✅ Service created`);
+          ctx.logger.info(`All done successfully! 👍`);
+        }).catch((error) => {
+          ctx.logger.error(`❌ Error creating service: ${error}`);
+        })
+      }).catch((error) => {
+        ctx.logger.error(`❌ Error creating project: ${error}`);
+      })
     },
   });
 };
