@@ -101,14 +101,17 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
       const serviceData = {
         serviceName: ctx.input.component_id,
       }
+      const projectUrl = `${target}/project`;
+      const serviceUrl = `${target}/project/${ctx.input.component_id}/service`;
 
       ctx.logger.info(`Headers: ${JSON.stringify(headers, null, 4)}`);
 
       ctx.logger.info(`Creating Project`);
+      ctx.logger.info(`Url: ${projectUrl}`);
       ctx.logger.info(`Data: ${JSON.stringify(projectData, null, 4)}`);
       await axiosInstance({
         method: 'post',
-        url: `${target}/project`,
+        url: projectUrl,
         data: projectData,
         headers,
       }).then(async () => {
@@ -116,10 +119,11 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
 
         // create service
         ctx.logger.info(`Creating Service`);
+        ctx.logger.info(`Url: ${serviceUrl}`);
         ctx.logger.info(`Data: ${JSON.stringify(serviceData, null, 4)}`);
         await axiosInstance({
           method: 'post',
-          url: `${target}/project/${ctx.input.component_id}/service`,
+          url: serviceUrl,
           data: serviceData,
           headers,
         }).then(() => {
