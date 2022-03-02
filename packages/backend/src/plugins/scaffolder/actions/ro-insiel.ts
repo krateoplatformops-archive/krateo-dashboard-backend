@@ -160,9 +160,9 @@ export const createRoInsielAction = () => {
       ctx.logger.info(`Created repository: ${repoURL}-keptn`);
 
       await git.init({ fs, dir: helmDir, defaultBranch: 'main' });
-      ctx.logger.info(`✅ Init`);
+      ctx.logger.info(`Init`);
       await git.add({ fs, dir: helmDir, filepath: '.' });
-      ctx.logger.info(`✅ Add *`);
+      ctx.logger.info(`Add *`);
       await git.commit({
         fs,
         dir: helmDir,
@@ -172,14 +172,14 @@ export const createRoInsielAction = () => {
         },
         message: 'initial commit',
       });
-      ctx.logger.info(`✅ Commit`);
+      ctx.logger.info(`Commit`);
       await git.addRemote({
         fs,
         dir: helmDir,
         remote: 'origin',
         url: `${repoURL}-hc.git`,
       });
-      ctx.logger.info(`✅ Add remote ${repoURL}-hc.git`);
+      ctx.logger.info(`Add remote ${repoURL}-hc.git`);
       await git.push({
         fs,
         http,
@@ -197,7 +197,7 @@ export const createRoInsielAction = () => {
       }).catch((err: any) => {
         ctx.logger.error(`❌ Push progress failed: ${err}`);
       })
-      ctx.logger.info(`✅ Push`);
+      ctx.logger.info(`Push`);
 
       ctx.logger.info(`Well done, pushed successfully!`);
     },

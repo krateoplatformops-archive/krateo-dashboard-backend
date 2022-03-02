@@ -72,8 +72,9 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
       });
 
       // get keptn api
-      const proxy = config.get('proxy');
-      const target = proxy['/keptn-api'].target.replace('api/v1', 'api/controlPlane/v1');
+      // const proxy = config.get('proxy');
+      // const target = proxy['/keptn-api'].target.replace('api/v1', 'api/controlPlane/v1');
+      const target= process.env.KEPTN_SHIPYARD_URL
 
       const axiosInstance = axios.create({
         httpsAgent: new https.Agent({
@@ -83,6 +84,8 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
           return status < 400
         }
       });
+
+      const prjName = ctx.input.component_id.replace(/\s+/g, '-')
 
       ctx.logger.info(`RepoUrl: ${repoURL}`);
       ctx.logger.info(`Target: ${target}`);
@@ -95,14 +98,14 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
         gitRemoteURL: `${repoURL}-keptn`,
         gitToken: process.env.GITHUB_TOKEN,
         gitUser: owner,
-        name: ctx.input.component_id,
+        name: prjName,
         shipyard: Buffer.from(fs.readFileSync(path.join(projectDir, 'shipyard.yaml'))).toString('base64'),
       }
       const serviceData = {
-        serviceName: ctx.input.component_id,
+        serviceName: `${prjName}-svc`,
       }
       const projectUrl = `${target}/project`;
-      const serviceUrl = `${target}/project/${ctx.input.component_id}/service`;
+      const serviceUrl = `${target}/project/${prjName}/service`;
 
       ctx.logger.info(`Headers: ${JSON.stringify(headers, null, 4)}`);
 
