@@ -102,7 +102,7 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
         shipyard: Buffer.from(fs.readFileSync(path.join(projectDir, 'shipyard.yaml'))).toString('base64'),
       }
       const serviceData = {
-        serviceName: `${prjName}-svc`,
+        serviceName: `${prjName}`,
       }
       const projectUrl = `${target}/project`;
       const serviceUrl = `${target}/project/${prjName}/service`;

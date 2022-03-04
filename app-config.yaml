@@ -121,13 +121,13 @@ proxy:
       Cookie: "argocd.token="
 
   "/keptn-api":
-    target: http://keptn.krateoplatformops.io/api/v1/
+    target: http://keptn.krateo.io/api/v1/
     secure: false
     headers:
       x-token: "<token>"
 
   "/keptn":
-    target: http://keptn.krateoplatformops.io/bridge/api/
+    target: http://keptn.krateo.io/bridge/api/
     secure: false
     headers:
       Authorization: "Basic <base_64_token>"
