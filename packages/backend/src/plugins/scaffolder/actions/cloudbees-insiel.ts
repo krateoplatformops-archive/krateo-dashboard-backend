@@ -56,6 +56,11 @@ export const createCloudbeesInsielAction = (options: { config: Config }) => {
             title: 'Cloudbees node name',
             description: 'node name',
           },
+          gitHubUrl: {
+            type: 'string',
+            title: 'GitHub Url',
+            description: 'GitHub Url',
+          }
         },
       },
     },
@@ -99,6 +104,7 @@ export const createCloudbeesInsielAction = (options: { config: Config }) => {
       const appModified = nunjucks.render(appXml, {
         owner,
         repo,
+        gitHubUrl: ctx.input.gitHubUrl,
         guid: uuidv4(),
       });
       fs.writeFileSync(appXml, appModified, { encoding: 'utf-8' });
@@ -107,6 +113,7 @@ export const createCloudbeesInsielAction = (options: { config: Config }) => {
       // Helm Chart
       const helmModified = nunjucks.render(helmXml, {
         owner,
+        gitHubUrl: ctx.input.gitHubUrl,
         repo: `${repo}-hc`,
         guid: uuidv4(),
       });

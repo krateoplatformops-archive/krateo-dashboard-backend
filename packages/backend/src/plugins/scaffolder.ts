@@ -31,6 +31,7 @@ import {
   createRoInsielAction,
   createCloudbeesInsielAction,
   createKeptnProjectInsielAction,
+  createSonarQubeAction
 } from './scaffolder/actions';
 
 export default async function createPlugin({
@@ -68,6 +69,7 @@ export default async function createPlugin({
     createKeptnProjectInsielAction({
       config,
     }),
+    createSonarQubeAction(),
   ];
 
   return await createRouter({

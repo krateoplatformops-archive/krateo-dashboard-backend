@@ -132,6 +132,12 @@ proxy:
     headers:
       Authorization: "Basic <base_64_token>"
 
+  "/prometheus/api":
+    target: https://prometheus.krateo.io/api/v1/
+    secure: false
+    headers:
+      Authorization: Bearer ${PROMETHEUS_TOKEN}
+
 organization:
   name: My Company
 

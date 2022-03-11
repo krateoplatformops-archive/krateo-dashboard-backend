@@ -20,3 +20,4 @@ export * from './keptn';
 export * from './ro-insiel';
 export * from './cloudbees-insiel';
 export * from './keptn-insiel';
+export * from './sonarqube';
