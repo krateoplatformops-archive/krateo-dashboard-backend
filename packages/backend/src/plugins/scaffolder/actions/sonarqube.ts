@@ -66,7 +66,7 @@ export const createSonarQubeAction = () => {
       const configData = new URLSearchParams();
       configData.append('almSetting', ctx.input.alm);
       configData.append('organization', owner);
-      configData.append('repositoryKey', `${owner}_${repo}`);
+      configData.append('repositoryKey', `${owner}/${repo}`);
 
       ctx.logger.info(`${process.env.SONARQUBE_URL}/api/alm_integrations/import_github_project`)
       ctx.logger.info(JSON.stringify(config))
