@@ -22,7 +22,7 @@ export const createSonarQubeAction = () => {
     id: 'krateo:sonarqube',
     schema: {
       input: {
-        required: ['host'],
+        required: ['host', 'alm'],
         type: 'object',
         properties: {
           host: {
@@ -30,6 +30,11 @@ export const createSonarQubeAction = () => {
             title: 'Host',
             description: 'Host',
           },
+          alm: {
+            type: 'string',
+            title: 'Alm',
+            description: 'Alm Settings',
+          }
         },
       },
     },
@@ -49,9 +54,7 @@ export const createSonarQubeAction = () => {
         },
       };
 
-
       // curl -u ${SONARQUBE_AUTH}: -X POST https://xxx/api/projects/create -d "name=kaakaa-test&project=kaakaa-test&organization=org" -vk
-
 
       const fullUrl = `https://${ctx.input.host}`;
       const url = new URL(fullUrl);
@@ -61,13 +64,13 @@ export const createSonarQubeAction = () => {
       // Create project on sonarqube
       ctx.logger.info(`Creating project "${repo}" on SonarQube.`);
       const configData = new URLSearchParams();
-      configData.append('almSetting', 'krateo-github-integration');
+      configData.append('almSetting', ctx.input.alm);
       configData.append('organization', owner);
       configData.append('repositoryKey', `${owner}_${repo}`);
 
       ctx.logger.info(`${process.env.SONARQUBE_URL}/api/alm_integrations/import_github_project`)
       ctx.logger.info(JSON.stringify(config))
-      ctx.logger.info(JSON.stringify(configData))
+      ctx.logger.info(configData)
 
       await axiosInstance.post(
         `${process.env.SONARQUBE_URL}/api/alm_integrations/import_github_project`,
