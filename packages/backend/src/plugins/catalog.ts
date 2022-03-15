@@ -38,7 +38,7 @@ export default async function createPlugin(
   builder.addEntityProvider(
       LdapOrgEntityProvider.fromConfig(env.config, {
         id: 'our-ldap-master',
-        target: 'ldap://localhost:10389',
+        target: process.env.LDAP_TARGET || 'ldap://localhost:389',
         logger: env.logger,
         schedule: env.scheduler.createScheduledTaskRunner({
           frequency: Duration.fromObject({ minutes: 60 }),
