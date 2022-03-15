@@ -19,7 +19,7 @@ RUN pip3.8 install cookiecutter && \
     apt remove -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev libbz2-dev g++ python-pip python-dev && \
     rm -rf /var/cache/apt/* /tmp/Python-3.8.2
 
-RUN curl -sL https://get.keptn.sh | KEPTN_VERSION=0.11.4 bash
+# RUN curl -sL https://get.keptn.sh | KEPTN_VERSION=0.11.4 bash
 
 # Copy repo skeleton first, to avoid unnecessary docker cache invalidation.
 # The skeleton contains the package.json of each package in the monorepo,
