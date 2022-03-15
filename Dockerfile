@@ -11,12 +11,12 @@ RUN cd /tmp && curl -O https://www.python.org/ftp/python/3.8.2/Python-3.8.2.tar.
     make altinstall
 
 RUN apt update
-RUN apt install -y mkdocs
+RUN apt install -y mkdocs make
 
 RUN pip3.8 install mkdocs-techdocs-core
 
 RUN pip3.8 install cookiecutter && \
-    apt remove -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev libbz2-dev g++ python-pip python-dev && \
+    apt remove -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libsqlite3-dev libreadline-dev libffi-dev libbz2-dev python-pip python-dev && \
     rm -rf /var/cache/apt/* /tmp/Python-3.8.2
 
 # RUN curl -sL https://get.keptn.sh | KEPTN_VERSION=0.11.4 bash
