@@ -6,9 +6,10 @@
 import { Config } from '@backstage/config';
 import express from 'express';
 import type { FetchResponse } from '@backstage/plugin-kubernetes-common';
+import type { JsonObject } from '@backstage/types';
 import type { KubernetesFetchError } from '@backstage/plugin-kubernetes-common';
 import type { KubernetesRequestBody } from '@backstage/plugin-kubernetes-common';
-import { Logger as Logger_2 } from 'winston';
+import { Logger } from 'winston';
 import type { ObjectsByEntityResponse } from '@backstage/plugin-kubernetes-common';
 import { PodStatus } from '@kubernetes/client-node/dist/top';
 
@@ -31,6 +32,7 @@ export interface ClusterDetails {
   // (undocumented)
   caData?: string | undefined;
   dashboardApp?: string;
+  dashboardParameters?: JsonObject;
   dashboardUrl?: string;
   name: string;
   // (undocumented)
@@ -81,15 +83,7 @@ export interface GKEClusterDetails extends ClusterDetails {}
 export class KubernetesBuilder {
   constructor(env: KubernetesEnvironment);
   // (undocumented)
-  build(): Promise<{
-    clusterDetails: ClusterDetails[];
-    clusterSupplier: KubernetesClustersSupplier;
-    customResources: CustomResource[];
-    fetcher: KubernetesFetcher;
-    objectsProvider: KubernetesObjectsProvider;
-    router: express.Router;
-    serviceLocator: KubernetesServiceLocator;
-  }>;
+  build(): KubernetesBuilderReturn;
   // (undocumented)
   protected buildClusterSupplier(): KubernetesClustersSupplier;
   // (undocumented)
@@ -140,6 +134,17 @@ export class KubernetesBuilder {
   setServiceLocator(serviceLocator?: KubernetesServiceLocator): this;
 }
 
+// @public
+export type KubernetesBuilderReturn = Promise<{
+  router: express.Router;
+  clusterDetails: ClusterDetails[];
+  clusterSupplier: KubernetesClustersSupplier;
+  customResources: CustomResource[];
+  fetcher: KubernetesFetcher;
+  objectsProvider: KubernetesObjectsProvider;
+  serviceLocator: KubernetesServiceLocator;
+}>;
+
 // Warning: (ae-missing-release-tag) "KubernetesClustersSupplier" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -155,7 +160,7 @@ export interface KubernetesEnvironment {
   // (undocumented)
   config: Config;
   // (undocumented)
-  logger: Logger_2;
+  logger: Logger;
 }
 
 // Warning: (ae-missing-release-tag) "KubernetesFetcher" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -192,7 +197,7 @@ export interface KubernetesObjectsProviderOptions {
   // (undocumented)
   fetcher: KubernetesFetcher;
   // (undocumented)
-  logger: Logger_2;
+  logger: Logger;
   // (undocumented)
   objectTypesToFetch?: ObjectToFetch[];
   // (undocumented)
@@ -270,7 +275,7 @@ export interface RouterOptions {
   // (undocumented)
   config: Config;
   // (undocumented)
-  logger: Logger_2;
+  logger: Logger;
 }
 
 // Warning: (ae-missing-release-tag) "ServiceAccountClusterDetails" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)

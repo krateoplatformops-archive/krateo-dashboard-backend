@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { errorApiRef } from '@backstage/core-plugin-api';
+import { configApiRef, errorApiRef } from '@backstage/core-plugin-api';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
-import { TestApiProvider } from '@backstage/test-utils';
+import { TestApiProvider, MockConfigApi } from '@backstage/test-utils';
 import { TextField } from '@material-ui/core';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -38,14 +38,14 @@ describe('<StepPrepareCreatePullRequest />', () => {
   const catalogApi: jest.Mocked<typeof catalogApiRef.T> = {
     getEntities: jest.fn(),
     addLocation: jest.fn(),
-    getEntityByName: jest.fn(),
-    getOriginLocationByEntity: jest.fn(),
-    getLocationByEntity: jest.fn(),
+    getEntityByRef: jest.fn(),
+    getLocationByRef: jest.fn(),
     getLocationById: jest.fn(),
     removeLocationById: jest.fn(),
     removeEntityByUid: jest.fn(),
     refreshEntity: jest.fn(),
     getEntityAncestors: jest.fn(),
+    getEntityFacets: jest.fn(),
   };
 
   const errorApi: jest.Mocked<typeof errorApiRef.T> = {
@@ -53,12 +53,15 @@ describe('<StepPrepareCreatePullRequest />', () => {
     post: jest.fn(),
   };
 
+  const configApi = new MockConfigApi({});
+
   const Wrapper = ({ children }: { children?: React.ReactNode }) => (
     <TestApiProvider
       apis={[
         [catalogImportApiRef, catalogImportApi],
         [catalogApiRef, catalogApi],
         [errorApiRef, errorApi],
+        [configApiRef, configApi],
       ]}
     >
       {children}

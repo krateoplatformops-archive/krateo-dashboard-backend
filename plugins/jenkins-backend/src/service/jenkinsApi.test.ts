@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Spotify AB
+ * Copyright 2021 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { JenkinsApiImpl } from './jenkinsApi';
 import jenkins from 'jenkins';
 import { JenkinsInfo } from './jenkinsInfoProvider';
 import { JenkinsBuild, JenkinsProject } from '../types';
+import { AuthorizeResult } from '@backstage/plugin-permission-common';
+import { NotAllowedError } from '@backstage/errors';
 
 jest.mock('jenkins');
 const mockedJenkinsClient = {
@@ -39,8 +42,16 @@ const jenkinsInfo: JenkinsInfo = {
   jobFullName: 'example-jobName',
 };
 
+const fakePermissionApi = {
+  authorize: jest.fn().mockResolvedValue([
+    {
+      result: AuthorizeResult.ALLOW,
+    },
+  ]),
+};
+
 describe('JenkinsApi', () => {
-  const jenkinsApi = new JenkinsApiImpl();
+  const jenkinsApi = new JenkinsApiImpl(fakePermissionApi);
 
   describe('getProjects', () => {
     const project: JenkinsProject = {
@@ -408,6 +419,47 @@ describe('JenkinsApi', () => {
       baseUrl: jenkinsInfo.baseUrl,
       headers: jenkinsInfo.headers,
       promisify: true,
+    });
+    expect(mockedJenkinsClient.job.build).toBeCalledWith(jobFullName);
+  });
+
+  it('buildProject should fail if it does not have required permissions', async () => {
+    fakePermissionApi.authorize.mockResolvedValueOnce([
+      {
+        result: AuthorizeResult.DENY,
+      },
+    ]);
+
+    await expect(() =>
+      jenkinsApi.buildProject(jenkinsInfo, jobFullName),
+    ).rejects.toThrow(NotAllowedError);
+  });
+
+  it('buildProject should succeed if it have required permissions', async () => {
+    fakePermissionApi.authorize.mockResolvedValueOnce([
+      {
+        result: AuthorizeResult.ALLOW,
+      },
+    ]);
+
+    await jenkinsApi.buildProject(jenkinsInfo, jobFullName);
+    expect(mockedJenkins).toHaveBeenCalledWith({
+      baseUrl: jenkinsInfo.baseUrl,
+      headers: jenkinsInfo.headers,
+      promisify: true,
+    });
+    expect(mockedJenkinsClient.job.build).toBeCalledWith(jobFullName);
+  });
+
+  it('buildProject with crumbIssuer option', async () => {
+    const info: JenkinsInfo = { ...jenkinsInfo, crumbIssuer: true };
+    await jenkinsApi.buildProject(info, jobFullName);
+
+    expect(mockedJenkins).toHaveBeenCalledWith({
+      baseUrl: jenkinsInfo.baseUrl,
+      headers: jenkinsInfo.headers,
+      promisify: true,
+      crumbIssuer: true,
     });
     expect(mockedJenkinsClient.job.build).toBeCalledWith(jobFullName);
   });

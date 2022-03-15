@@ -37,6 +37,7 @@ import {
   EntityAzurePipelinesContent,
   EntityAzurePullRequestsContent,
   isAzureDevOpsAvailable,
+  isAzurePipelinesAvailable,
 } from '@backstage/plugin-azure-devops';
 import { EntityBadgesDialog } from '@backstage/plugin-badges';
 import {
@@ -80,23 +81,23 @@ import {
   EntityLatestJenkinsRunCard,
   isJenkinsAvailable,
 } from '@backstage/plugin-jenkins';
-import { EntityKafkaContent } from '@backstage/plugin-kafka';
+// import { EntityKafkaContent } from '@backstage/plugin-kafka';
 import { EntityKubernetesContent } from '@backstage/plugin-kubernetes';
-import {
-  EntityLastLighthouseAuditCard,
-  EntityLighthouseContent,
-  isLighthouseAvailable,
-} from '@backstage/plugin-lighthouse';
+// import {
+//   EntityLastLighthouseAuditCard,
+//   EntityLighthouseContent,
+//   isLighthouseAvailable,
+// } from '@backstage/plugin-lighthouse';
 import {
   EntityGroupProfileCard,
   EntityMembersListCard,
   EntityOwnershipCard,
   EntityUserProfileCard,
 } from '@backstage/plugin-org';
-import {
-  EntityPagerDutyCard,
-  isPagerDutyAvailable,
-} from '@backstage/plugin-pagerduty';
+// import {
+//   EntityPagerDutyCard,
+//   isPagerDutyAvailable,
+// } from '@backstage/plugin-pagerduty';
 import {
   EntityRollbarContent,
   isRollbarAvailable,
@@ -124,6 +125,39 @@ import {
   EntityTravisCIOverviewCard,
   isTravisciAvailable,
 } from '@roadiehq/backstage-plugin-travis-ci';
+import {
+  EntityBuildkiteContent,
+  isBuildkiteAvailable,
+} from '@roadiehq/backstage-plugin-buildkite';
+import {
+  isNewRelicDashboardAvailable,
+  EntityNewRelicDashboardContent,
+  EntityNewRelicDashboardCard,
+} from '@backstage/plugin-newrelic-dashboard';
+import { EntityGoCdContent, isGoCdAvailable } from '@backstage/plugin-gocd';
+import {
+  EntityPrometheusContent,
+  EntityPrometheusAlertCard,
+  EntityPrometheusGraphCard
+} from '@roadiehq/backstage-plugin-prometheus';
+import {
+  EntityGrafanaDashboardsCard,
+  EntityGrafanaAlertsCard,
+} from '@k-phoen/backstage-plugin-grafana';
+import {
+  EntityArgoCDOverviewCard,
+  isArgocdAvailable,
+} from '@roadiehq/backstage-plugin-argo-cd';
+import { EntitySonarQubeCard } from '@backstage/plugin-sonarqube';
+// eslint-disable-next-line no-restricted-imports
+import {
+  EntityKeptnProjectCard,
+  EntityKeptnServiceCard,
+  isKeptnProjectAvailable,
+  isKeptnServiceAvailable,
+  EntityKeptnContent,
+} from '../../plugins/keptn/src/index';
+
 import React, { ReactNode, useMemo, useState } from 'react';
 
 const customEntityFilterKind = ['Component', 'API', 'System'];
@@ -167,6 +201,10 @@ export const cicdContent = (
       <EntityJenkinsContent />
     </EntitySwitch.Case>
 
+    <EntitySwitch.Case if={isBuildkiteAvailable}>
+      <EntityBuildkiteContent />
+    </EntitySwitch.Case>
+
     <EntitySwitch.Case if={isCircleCIAvailable}>
       <EntityCircleCIContent />
     </EntitySwitch.Case>
@@ -179,11 +217,15 @@ export const cicdContent = (
       <EntityTravisCIContent />
     </EntitySwitch.Case>
 
+    <EntitySwitch.Case if={isGoCdAvailable}>
+      <EntityGoCdContent />
+    </EntitySwitch.Case>
+
     <EntitySwitch.Case if={isGithubActionsAvailable}>
       <EntityGithubActionsContent />
     </EntitySwitch.Case>
 
-    <EntitySwitch.Case if={isAzureDevOpsAvailable}>
+    <EntitySwitch.Case if={isAzurePipelinesAvailable}>
       <EntityAzurePipelinesContent defaultLimit={25} />
     </EntitySwitch.Case>
 
@@ -283,10 +325,18 @@ const overviewContent = (
       <EntityCatalogGraphCard variant="gridItem" height={400} />
     </Grid>
 
-    <EntitySwitch>
+    {/* <EntitySwitch>
       <EntitySwitch.Case if={isPagerDutyAvailable}>
         <Grid item md={6}>
           <EntityPagerDutyCard />
+        </Grid>
+      </EntitySwitch.Case>
+    </EntitySwitch> */}
+
+    <EntitySwitch>
+      <EntitySwitch.Case if={isNewRelicDashboardAvailable}>
+        <Grid item md={6} xs={12}>
+          <EntityNewRelicDashboardCard />
         </Grid>
       </EntitySwitch.Case>
     </EntitySwitch>
@@ -295,7 +345,26 @@ const overviewContent = (
       <EntityLinksCard />
     </Grid>
 
-    {cicdCard}
+    {/* {cicdCard} */}
+
+    <Grid item md={6}>
+      <EntitySonarQubeCard variant="gridItem" />
+    </Grid>
+
+    <Grid item md={6}>
+      <EntityGrafanaDashboardsCard />
+    </Grid>
+    <Grid item md={6}>
+      <EntityGrafanaAlertsCard />
+    </Grid>
+
+    <EntitySwitch>
+      <EntitySwitch.Case if={e => Boolean(isArgocdAvailable(e))}>
+        <Grid item md={12}>
+          <EntityArgoCDOverviewCard />
+        </Grid>
+      </EntitySwitch.Case>
+    </EntitySwitch>
 
     <EntitySwitch>
       <EntitySwitch.Case if={e => Boolean(isGithubInsightsAvailable(e))}>
@@ -309,7 +378,7 @@ const overviewContent = (
       </EntitySwitch.Case>
     </EntitySwitch>
 
-    <EntitySwitch>
+    {/* <EntitySwitch>
       <EntitySwitch.Case if={isLighthouseAvailable}>
         <Grid item sm={4}>
           <EntityLastLighthouseAuditCard variant="gridItem" />
@@ -323,11 +392,26 @@ const overviewContent = (
           <EntityGithubPullRequestsOverviewCard />
         </Grid>
       </EntitySwitch.Case>
-    </EntitySwitch>
+    </EntitySwitch> */}
+
+<Grid item md={6}>
+      <EntityPrometheusAlertCard />
+    </Grid>
+    <Grid item md={6}>
+      <EntityPrometheusGraphCard />
+    </Grid>
 
     <Grid item md={8} xs={12}>
       <EntityHasSubcomponentsCard variant="gridItem" />
     </Grid>
+
+    <EntitySwitch>
+      <EntitySwitch.Case if={isKeptnServiceAvailable}>
+        <Grid item md={6} xs={6}>
+          <EntityKeptnServiceCard />
+        </Grid>
+      </EntitySwitch.Case>
+    </EntitySwitch>
   </Grid>
 );
 
@@ -341,9 +425,9 @@ const serviceEntityPage = (
       {cicdContent}
     </EntityLayout.Route>
 
-    <EntityLayout.Route path="/errors" title="Errors">
+    {/* <EntityLayout.Route path="/errors" title="Errors">
       {errorsContent}
-    </EntityLayout.Route>
+    </EntityLayout.Route> */}
 
     <EntityLayout.Route path="/api" title="API">
       <Grid container spacing={3} alignItems="stretch">
@@ -371,6 +455,14 @@ const serviceEntityPage = (
       <EntityTechdocsContent />
     </EntityLayout.Route>
 
+    {/* <EntityLayout.Route
+      if={isNewRelicDashboardAvailable}
+      path="/newrelic-dashboard"
+      title="New Relic Dashboard"
+    >
+      <EntityNewRelicDashboardContent />
+    </EntityLayout.Route> */}
+
     <EntityLayout.Route path="/kubernetes" title="Kubernetes">
       <EntityKubernetesContent />
     </EntityLayout.Route>
@@ -383,16 +475,24 @@ const serviceEntityPage = (
       <EntityGithubInsightsContent />
     </EntityLayout.Route>
 
-    <EntityLayout.Route path="/code-coverage" title="Code Coverage">
+    {/* <EntityLayout.Route path="/code-coverage" title="Code Coverage">
       <EntityCodeCoverageContent />
+    </EntityLayout.Route> */}
+
+    <EntityLayout.Route path="/prometheus" title="Prometheus">
+      <EntityPrometheusContent />
     </EntityLayout.Route>
 
-    <EntityLayout.Route path="/kafka" title="Kafka">
+    {/* <EntityLayout.Route path="/kafka" title="Kafka">
       <EntityKafkaContent />
     </EntityLayout.Route>
 
     <EntityLayout.Route path="/todos" title="TODOs">
       <EntityTodoContent />
+    </EntityLayout.Route> */}
+
+  <EntityLayout.Route path="/keptn" title="Keptn">
+      <EntityKeptnContent />
     </EntityLayout.Route>
   </EntityLayoutWrapper>
 );
@@ -407,9 +507,9 @@ const websiteEntityPage = (
       {cicdContent}
     </EntityLayout.Route>
 
-    <EntityLayout.Route path="/lighthouse" title="Lighthouse">
+    {/* <EntityLayout.Route path="/lighthouse" title="Lighthouse">
       <EntityLighthouseContent />
-    </EntityLayout.Route>
+    </EntityLayout.Route> */}
 
     <EntityLayout.Route path="/errors" title="Errors">
       {errorsContent}
@@ -429,6 +529,13 @@ const websiteEntityPage = (
     <EntityLayout.Route path="/docs" title="Docs">
       <EntityTechdocsContent />
     </EntityLayout.Route>
+    <EntityLayout.Route
+      if={isNewRelicDashboardAvailable}
+      path="/newrelic-dashboard"
+      title="New Relic Dashboard"
+    >
+      <EntityNewRelicDashboardContent />
+    </EntityLayout.Route>
 
     <EntityLayout.Route path="/kubernetes" title="Kubernetes">
       <EntityKubernetesContent />
@@ -442,13 +549,13 @@ const websiteEntityPage = (
       <EntityGithubInsightsContent />
     </EntityLayout.Route>
 
-    <EntityLayout.Route path="/code-coverage" title="Code Coverage">
+    {/* <EntityLayout.Route path="/code-coverage" title="Code Coverage">
       <EntityCodeCoverageContent />
-    </EntityLayout.Route>
+    </EntityLayout.Route> */}
 
-    <EntityLayout.Route path="/todos" title="TODOs">
+    {/* <EntityLayout.Route path="/todos" title="TODOs">
       <EntityTodoContent />
-    </EntityLayout.Route>
+    </EntityLayout.Route> */}
   </EntityLayoutWrapper>
 );
 
@@ -462,9 +569,9 @@ const defaultEntityPage = (
       <EntityTechdocsContent />
     </EntityLayout.Route>
 
-    <EntityLayout.Route path="/todos" title="TODOs">
+    {/* <EntityLayout.Route path="/todos" title="TODOs">
       <EntityTodoContent />
-    </EntityLayout.Route>
+    </EntityLayout.Route> */}
   </EntityLayoutWrapper>
 );
 
@@ -577,6 +684,13 @@ const systemPage = (
         <Grid item md={6}>
           <EntityHasResourcesCard variant="gridItem" />
         </Grid>
+        <EntitySwitch>
+          <EntitySwitch.Case if={isKeptnProjectAvailable}>
+            <Grid item md={12}>
+              <EntityKeptnProjectCard />
+            </Grid>
+          </EntitySwitch.Case>
+        </EntitySwitch>
       </Grid>
     </EntityLayout.Route>
     <EntityLayout.Route path="/diagram" title="Diagram">

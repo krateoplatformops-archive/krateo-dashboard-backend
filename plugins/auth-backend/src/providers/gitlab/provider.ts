@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
+import {
+  DEFAULT_NAMESPACE,
+  stringifyEntityRef,
+} from '@backstage/catalog-model';
 import express from 'express';
 import { Strategy as GitlabStrategy } from 'passport-gitlab2';
 import { Logger } from 'winston';
-
 import {
   executeRedirectStrategy,
   executeFrameHandlerStrategy,
@@ -71,8 +74,17 @@ export const gitlabDefaultSignInResolver: SignInResolver<OAuthResult> = async (
     id = profile.email.split('@')[0];
   }
 
+  const entityRef = stringifyEntityRef({
+    kind: 'User',
+    namespace: DEFAULT_NAMESPACE,
+    name: id,
+  });
+
   const token = await ctx.tokenIssuer.issueToken({
-    claims: { sub: id, ent: [`user:default/${id}`] },
+    claims: {
+      sub: entityRef,
+      ent: [entityRef],
+    },
   });
 
   return { id, token };
@@ -132,9 +144,7 @@ export class GitlabAuthProvider implements OAuthHandlers {
     });
   }
 
-  async handler(
-    req: express.Request,
-  ): Promise<{ response: OAuthResponse; refreshToken: string }> {
+  async handler(req: express.Request) {
     const { result, privateInfo } = await executeFrameHandlerStrategy<
       OAuthResult,
       PrivateInfo
@@ -146,38 +156,40 @@ export class GitlabAuthProvider implements OAuthHandlers {
     };
   }
 
-  async refresh(req: OAuthRefreshRequest): Promise<OAuthResponse> {
-    const {
-      accessToken,
-      refreshToken: newRefreshToken,
-      params,
-    } = await executeRefreshTokenStrategy(
-      this._strategy,
-      req.refreshToken,
-      req.scope,
-    );
+  async refresh(req: OAuthRefreshRequest) {
+    const { accessToken, refreshToken, params } =
+      await executeRefreshTokenStrategy(
+        this._strategy,
+        req.refreshToken,
+        req.scope,
+      );
 
     const fullProfile = await executeFetchUserProfileStrategy(
       this._strategy,
       accessToken,
     );
-
-    return this.handleResult({
-      fullProfile,
-      params,
-      accessToken,
-      refreshToken: newRefreshToken,
-    });
+    return {
+      response: await this.handleResult({
+        fullProfile,
+        params,
+        accessToken,
+      }),
+      refreshToken,
+    };
   }
 
   private async handleResult(result: OAuthResult): Promise<OAuthResponse> {
-    const { profile } = await this.authHandler(result);
+    const context = {
+      logger: this.logger,
+      catalogIdentityClient: this.catalogIdentityClient,
+      tokenIssuer: this.tokenIssuer,
+    };
+    const { profile } = await this.authHandler(result, context);
 
     const response: OAuthResponse = {
       providerInfo: {
         idToken: result.params.id_token,
         accessToken: result.accessToken,
-        refreshToken: result.refreshToken, // GitLab expires the old refresh token when used
         scope: result.params.scope,
         expiresInSeconds: result.params.expires_in,
       },
@@ -190,11 +202,7 @@ export class GitlabAuthProvider implements OAuthHandlers {
           result,
           profile,
         },
-        {
-          tokenIssuer: this.tokenIssuer,
-          catalogIdentityClient: this.catalogIdentityClient,
-          logger: this.logger,
-        },
+        context,
       );
     }
 
@@ -231,6 +239,7 @@ export const createGitlabProvider = (
     globalConfig,
     config,
     tokenIssuer,
+    tokenManager,
     catalogApi,
     logger,
   }) =>
@@ -239,11 +248,14 @@ export const createGitlabProvider = (
       const clientSecret = envConfig.getString('clientSecret');
       const audience = envConfig.getOptionalString('audience');
       const baseUrl = audience || 'https://gitlab.com';
-      const callbackUrl = `${globalConfig.baseUrl}/${providerId}/handler/frame`;
+      const customCallbackUrl = envConfig.getOptionalString('callbackUrl');
+      const callbackUrl =
+        customCallbackUrl ||
+        `${globalConfig.baseUrl}/${providerId}/handler/frame`;
 
       const catalogIdentityClient = new CatalogIdentityClient({
         catalogApi,
-        tokenIssuer,
+        tokenManager,
       });
 
       const authHandler: AuthHandler<OAuthResult> =
@@ -275,6 +287,7 @@ export const createGitlabProvider = (
         disableRefresh: false,
         providerId,
         tokenIssuer,
+        callbackUrl,
       });
     });
 };

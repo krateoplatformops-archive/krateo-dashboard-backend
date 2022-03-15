@@ -16,8 +16,10 @@
 
 export * from './addBaseUrl';
 export * from './addGitFeedbackLink';
+export * from './addSidebarToggle';
 export * from './rewriteDocLinks';
 export * from './addLinkClickListener';
+export * from './copyToClipboard';
 export * from './removeMkdocsHeader';
 export * from './simplifyMkdocsFooter';
 export * from './onCssReady';

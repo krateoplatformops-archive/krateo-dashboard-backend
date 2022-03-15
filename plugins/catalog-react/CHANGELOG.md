@@ -1,5 +1,316 @@
 # @backstage/plugin-catalog-react
 
+## 0.9.0
+
+### Minor Changes
+
+- b0af81726d: **BREAKING**: Removed `reduceCatalogFilters` and `reduceEntityFilters` due to low external utility value.
+- 7ffb2c73c9: **BREAKING**: Removed the deprecated `loadCatalogOwnerRefs` function. Usages of this function can be directly replaced with `ownershipEntityRefs` from `identityApi.getBackstageIdentity()`.
+
+  This also affects the `useEntityOwnership` hook in that it no longer uses `loadCatalogOwnerRefs`, meaning it will no longer load in additional relations and instead only rely on the `ownershipEntityRefs` from the `IdentityApi`.
+
+- dd88d1e3ac: **BREAKING**: Removed `useEntityFromUrl`.
+- 9844d4d2bd: **BREAKING**: Removed `useEntityCompoundName`, use `useRouteRefParams(entityRouteRef)` instead.
+- 2b8c986ce0: **BREAKING**: Removed `useEntityListProvider` use `useEntityList` instead.
+- f3a7a9de6d: **BREAKING**: Removed `useOwnedEntities` and moved its usage internally to the scaffolder-backend where it's used.
+
+  **BREAKING**: Removed `EntityTypeReturn` type which is now inlined.
+
+- cf1ff5b438: **BREAKING**: Removed the `useEntityKinds` hook, use `catalogApi.getEntityFacets({ facets: ['kind'] })` instead.
+- fc6290a76d: **BREAKING**: Removed the deprecated `useOwnUser` hook. Existing usage can be replaced with `identityApi.getBackstageIdentity()`, followed by a call to `catalogClient.getEntityByRef(identity.userEntityRef)`.
+
+### Patch Changes
+
+- b1aacbf96a: Applied the fix for the `/alpha` entry point resolution that was part of the `v0.70.1` release of Backstage.
+- 2986f8e09d: Fixed EntityOwnerPicker and OwnershipCard url filter issue with more than 21 owners
+- f3a7a9de6d: Internalized usage of `useOwnedEntities` hook.
+- Updated dependencies
+  - @backstage/core-components@0.9.1
+  - @backstage/catalog-model@0.13.0
+  - @backstage/catalog-client@0.9.0
+
+## 0.9.0-next.0
+
+### Minor Changes
+
+- b0af81726d: **BREAKING**: Removed `reduceCatalogFilters` and `reduceEntityFilters` due to low external utility value.
+- 7ffb2c73c9: **BREAKING**: Removed the deprecated `loadCatalogOwnerRefs` function. Usages of this function can be directly replaced with `ownershipEntityRefs` from `identityApi.getBackstageIdentity()`.
+
+  This also affects the `useEntityOwnership` hook in that it no longer uses `loadCatalogOwnerRefs`, meaning it will no longer load in additional relations and instead only rely on the `ownershipEntityRefs` from the `IdentityApi`.
+
+- dd88d1e3ac: **BREAKING**: Removed `useEntityFromUrl`.
+- 9844d4d2bd: **BREAKING**: Removed `useEntityCompoundName`, use `useRouteRefParams(entityRouteRef)` instead.
+- 2b8c986ce0: **BREAKING**: Removed `useEntityListProvider` use `useEntityList` instead.
+- f3a7a9de6d: **BREAKING**: Removed `useOwnedEntities` and moved its usage internally to the scaffolder-backend where it's used.
+
+  **BREAKING**: Removed `EntityTypeReturn` type which is now inlined.
+
+- cf1ff5b438: **BREAKING**: Removed the `useEntityKinds` hook, use `catalogApi.getEntityFacets({ facets: ['kind'] })` instead.
+- fc6290a76d: **BREAKING**: Removed the deprecated `useOwnUser` hook. Existing usage can be replaced with `identityApi.getBackstageIdentity()`, followed by a call to `catalogClient.getEntityByRef(identity.userEntityRef)`.
+
+### Patch Changes
+
+- b1aacbf96a: Applied the fix for the `/alpha` entry point resolution that was part of the `v0.70.1` release of Backstage.
+- 2986f8e09d: Fixed EntityOwnerPicker and OwnershipCard url filter issue with more than 21 owners
+- f3a7a9de6d: Internalized usage of `useOwnedEntities` hook.
+- Updated dependencies
+  - @backstage/core-components@0.9.1-next.0
+  - @backstage/catalog-model@0.13.0-next.0
+  - @backstage/catalog-client@0.9.0-next.0
+
+## 0.8.1
+
+### Patch Changes
+
+- Fixed runtime resolution of the `/alpha` entry point.
+- Updated dependencies
+  - @backstage/catalog-model@0.12.1
+
+## 0.8.0
+
+### Minor Changes
+
+- da79aac2a6: Removed some previously deprecated `routeRefs` as follows:
+
+  - **BREAKING**: Removed `entityRoute` in favor of `entityRouteRef`.
+  - **BREAKING**: Removed the previously deprecated `rootRoute` and `catalogRouteRef`. If you want to refer to the catalog index page from a public plugin you now need to use an `ExternalRouteRef` instead. For private plugins it is possible to take the shortcut of referring directly to `catalogPlugin.routes.indexPage` instead.
+
+- e26fd1c7ab: Marked `useEntityPermission` as alpha since the underlying permission framework is under active development.
+- 2de1d82bd1: Removing the `EntityName` path for the `useEntityOwnership` as it has never worked correctly. Please pass in an entire `Entity` instead.
+
+### Patch Changes
+
+- 899f196af5: Use `getEntityByRef` instead of `getEntityByName` in the catalog client
+- f41a293231: - **DEPRECATION**: Deprecated `formatEntityRefTitle` in favor of the new `humanizeEntityRef` method instead. Please migrate to using the new method instead.
+- f590d1681b: Deprecated `favoriteEntityTooltip` and `favoriteEntityIcon` since the utility value is very low.
+- 72431d7bed: - **BREAKING**: The `isOwnerOf` function has been marked as `@alpha` and is now only available via the `@backstage/plugin-catalog-react/alpha` import. The limitations of this function with regards to only supporting direct relations have also been documented.
+- 03ec06bf7f: **BREAKING**: Moved **DefaultStarredEntitiesApi** to `@backstage/plugin-catalog`. If you were using this in tests, you can use the new `MockStarredEntitiesApi` from `@backstage/plugin-catalog-react` instead.
+
+  Fixed a risky behavior where `DefaultStarredEntitiesApi` forwarded values to observers that were later mutated.
+
+  Removed the `isStarred` method from `DefaultStarredEntitiesApi`, as it is not part of the `StarredEntitiesApi`.
+
+- 44403296e7: Added the following deprecations to the `catalog-react` package:
+
+  - **DEPRECATION**: `useEntity` will now warn if the entity has not yet been loaded, and will soon throw errors instead. If you're using the default implementation of `EntityLayout` and `EntitySwitch` then these components will ensure that there is an entity loaded before rendering children. If you're implementing your own `EntityLayout` or `EntitySwitch` or something that operates outside or adjacent to them, then use `useAsyncEntity`.
+
+  - **DEPRECATION**: the `loading`, `error` and `refresh` properties that are returned from `useEntity` have been deprecated, and are available on `useAsyncEntity` instead.
+
+- 8f0e8e039b: Deprecated `getEntityMetadataEditUrl` and `getEntityMetadataViewUrl` as these just return one annotation from the entity passed in.
+- 36aa63022b: Use `CompoundEntityRef` instead of `EntityName`, and `getCompoundEntityRef` instead of `getEntityName`, from `@backstage/catalog-model`.
+- bb2bb36651: Updated usage of `StorageApi` to use `snapshot` method instead of `get`
+- Updated dependencies
+  - @backstage/catalog-model@0.12.0
+  - @backstage/catalog-client@0.8.0
+  - @backstage/core-components@0.9.0
+  - @backstage/integration@0.8.0
+  - @backstage/core-plugin-api@0.8.0
+  - @backstage/plugin-permission-common@0.5.2
+  - @backstage/plugin-permission-react@0.3.3
+
+## 0.7.0
+
+### Minor Changes
+
+- 3334ad47d4: Removed the deprecated `EntityContext` which have been replaced by `useEntity`, `EntityProvider` and `AsyncEntityProvider`.
+- e2e0b6625c: Improved API documentation.
+
+  **BREAKING**: The individual table column factories (e.g. `createEntityRefColumn`) are now no longer available directly, but only through `EntityTable.columns`.
+
+- c4276915c0: **BREAKING**: Deleted the deprecated `loadIdentityOwnerRefs` function which is replaced by `ownershipEntityRefs` from `identityApi.getBackstageIdentity()`.
+
+  Deprecated the `loadCatalogOwnerRefs` hook as membership references should be added as `ent` inside `claims` sections of the `SignInResolver` when issuing tokens. See https://backstage.io/docs/auth/identity-resolver for more details on how to prepare your `SignInResolver` if not done already. Usage of the `loadCatalogOwnerRefs` hook should be replaced by `ownershipEntityRefs` from `identityApi.getBackstageIdentity()` instead.
+
+### Patch Changes
+
+- a8331830f1: Deprecated the `useEntityKinds` hook due to low usage and utility value.
+- 6e1cbc12a6: Updated according to the new `getEntityFacets` catalog API method
+- b776ce5aab: Deprecated the `useEntityListProvider` hook which is now renamed to `useEntityList`
+- b3ef24038b: Deprecated `reduceCatalogFilters` and `reduceEntityFilters` as these helper functions are used internally and provides low external value.
+- 2d339b5f2c: Deprecated `useEntityFromUrl` and the `useEntityCompoundName` hooks as these have very low utility value.
+- 96b8ae9a9e: Deprecated the `EntityTypeReturn` type and inlined the return type to `useEntityTypeFilter` as the type and function name does not align
+- d4f67fa728: Deprecated the `useOwnedEntities` hook which is replaced by the IdentityAPI.
+  Deprecated the `useOwnUser` hook due to low external value.
+- 919cf2f836: Minor updates to match the new `targetRef` field of relations, and to stop consuming the `target` field
+- Updated dependencies
+  - @backstage/core-components@0.8.10
+  - @backstage/catalog-model@0.11.0
+  - @backstage/catalog-client@0.7.2
+  - @backstage/core-plugin-api@0.7.0
+  - @backstage/integration@0.7.5
+  - @backstage/plugin-permission-react@0.3.2
+
+## 0.6.15
+
+### Patch Changes
+
+- 1ed305728b: Bump `node-fetch` to version 2.6.7 and `cross-fetch` to version 3.1.5
+- c77c5c7eb6: Added `backstage.role` to `package.json`
+- 538ca90790: Use updated type names from `@backstage/catalog-client`
+- edbc03814a: Replace usage of `serializeEntityRef` with `stringifyEntityRef`
+- 244d24ebc4: Import `Location` from the `@backstage/catalog-client` package.
+- deaf6065db: Adapt to the new `CatalogApi.getLocationByRef`
+- 216725b434: Updated to use new names for `parseLocationRef` and `stringifyLocationRef`
+- e72d371296: Use `TemplateEntityV1beta2` from `@backstage/plugin-scaffolder-common` instead
+  of `@backstage/catalog-model`.
+- 98d1aa1ea1: Fix CatalogPage showing all components when owned filter was pre-selected
+- 27eccab216: Replaces use of deprecated catalog-model constants.
+- 7aeb491394: Replace use of deprecated `ENTITY_DEFAULT_NAMESPACE` constant with `DEFAULT_NAMESPACE`.
+- Updated dependencies
+  - @backstage/catalog-client@0.7.0
+  - @backstage/core-components@0.8.9
+  - @backstage/core-plugin-api@0.6.1
+  - @backstage/errors@0.2.1
+  - @backstage/integration@0.7.3
+  - @backstage/plugin-permission-common@0.5.0
+  - @backstage/plugin-permission-react@0.3.1
+  - @backstage/catalog-model@0.10.0
+  - @backstage/types@0.1.2
+  - @backstage/version-bridge@0.1.2
+
+## 0.6.14
+
+### Patch Changes
+
+- 680e7c7452: Updated `useEntityListProvider` and catalog pickers to respond to external changes to query parameters in the URL, such as two sidebar links that apply different catalog filters.
+- f8633307c4: Added an "inspect" entry in the entity three-dots menu, for lower level catalog
+  insights and debugging.
+- 19155e0939: Updated React component type declarations to avoid exporting exotic component types.
+- 7bb1bde7f6: Minor API cleanups
+- Updated dependencies
+  - @backstage/catalog-client@0.6.0
+  - @backstage/core-components@0.8.8
+
+## 0.6.14-next.0
+
+### Patch Changes
+
+- 680e7c7452: Updated `useEntityListProvider` and catalog pickers to respond to external changes to query parameters in the URL, such as two sidebar links that apply different catalog filters.
+- 7bb1bde7f6: Minor API cleanups
+- Updated dependencies
+  - @backstage/core-components@0.8.8-next.0
+
+## 0.6.13
+
+### Patch Changes
+
+- f7257dff6f: The `<Link />` component now accepts a `noTrack` prop, which prevents the `click` event from being captured by the Analytics API. This can be used if tracking is explicitly not warranted, or in order to use custom link tracking in specific situations.
+- 300f8cdaee: Fix bug: previously the filter would be set to "all" on page load, even if the
+  `initiallySelectedFilter` on the `DefaultCatalogPage` was set to something else,
+  or a different query parameter was supplied. Now, the prop and query parameters
+  control the filter as expected. Additionally, after this change any filters
+  which match 0 items will be disabled, and the filter will be reverted to 'all'
+  if they're set on page load.
+- 6acc8f7db7: Add caching to the useEntityPermission hook
+
+  The hook now caches the authorization decision based on the permission + the entity, and returns the cache match value as the default `allowed` value while loading. This helps avoid flicker in UI elements that would be conditionally rendered based on the `allowed` result of this hook.
+
+- Updated dependencies
+  - @backstage/core-components@0.8.7
+
+## 0.6.13-next.1
+
+### Patch Changes
+
+- f7257dff6f: The `<Link />` component now accepts a `noTrack` prop, which prevents the `click` event from being captured by the Analytics API. This can be used if tracking is explicitly not warranted, or in order to use custom link tracking in specific situations.
+- 300f8cdaee: Fix bug: previously the filter would be set to "all" on page load, even if the
+  `initiallySelectedFilter` on the `DefaultCatalogPage` was set to something else,
+  or a different query parameter was supplied. Now, the prop and query parameters
+  control the filter as expected. Additionally, after this change any filters
+  which match 0 items will be disabled, and the filter will be reverted to 'all'
+  if they're set on page load.
+- 6acc8f7db7: Add caching to the useEntityPermission hook
+
+  The hook now caches the authorization decision based on the permission + the entity, and returns the cache match value as the default `allowed` value while loading. This helps avoid flicker in UI elements that would be conditionally rendered based on the `allowed` result of this hook.
+
+- Updated dependencies
+  - @backstage/core-components@0.8.7-next.1
+
+## 0.6.13-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.7-next.0
+
+## 0.6.12
+
+### Patch Changes
+
+- 3d87019269: The `entityRouteRef` is now a well-known route that should be imported directly from `@backstage/plugin-catalog-react`. It is guaranteed to be globally unique across duplicate installations of the `@backstage/plugin-catalog-react`, starting at this version.
+
+  Deprecated `entityRoute` in favor of `entityRouteRef`.
+
+  Deprecated `rootRoute` and `catalogRouteRef`. If you want to refer to the catalog index page from a public plugin you now need to use an `ExternalRouteRef` instead. For private plugins it is possible to take the shortcut of referring directly to `catalogPlugin.routes.indexPage` instead.
+
+- 2916a83b9c: Deprecated `loadIdentityOwnerRefs`, since they can now be retrieved as `ownershipEntityRefs` from `identityApi.getBackstageIdentity()` instead.
+- 51fbedc445: Migrated usage of deprecated `IdentityApi` methods.
+- c54c0d9d10: Add useEntityPermission hook
+- Updated dependencies
+  - @backstage/plugin-permission-react@0.3.0
+  - @backstage/core-components@0.8.5
+  - @backstage/integration@0.7.2
+  - @backstage/plugin-permission-common@0.4.0
+  - @backstage/core-plugin-api@0.6.0
+  - @backstage/catalog-model@0.9.10
+  - @backstage/catalog-client@0.5.5
+
+## 0.6.12-next.0
+
+### Patch Changes
+
+- 2916a83b9c: Deprecated `loadIdentityOwnerRefs`, since they can now be retrieved as `ownershipEntityRefs` from `identityApi.getBackstageIdentity()` instead.
+- 51fbedc445: Migrated usage of deprecated `IdentityApi` methods.
+- Updated dependencies
+  - @backstage/core-components@0.8.5-next.0
+  - @backstage/core-plugin-api@0.6.0-next.0
+  - @backstage/catalog-model@0.9.10-next.0
+  - @backstage/catalog-client@0.5.5-next.0
+  - @backstage/integration@0.7.2-next.0
+
+## 0.6.11
+
+### Patch Changes
+
+- 5333451def: Cleaned up API exports
+- Updated dependencies
+  - @backstage/integration@0.7.1
+  - @backstage/core-components@0.8.4
+  - @backstage/core-plugin-api@0.5.0
+  - @backstage/errors@0.2.0
+  - @backstage/catalog-client@0.5.4
+  - @backstage/catalog-model@0.9.9
+
+## 0.6.10
+
+### Patch Changes
+
+- fe2a6532ff: Add Override Components for Components in @backstage/plugin-catalog-react
+- 4ce51ab0f1: Internal refactor of the `react-use` imports to use `react-use/lib/*` instead.
+- Updated dependencies
+  - @backstage/core-plugin-api@0.4.1
+  - @backstage/core-components@0.8.3
+
+## 0.6.9
+
+### Patch Changes
+
+- c6fdddec77: When a user has zero owned entities when viewing an entity kind in the catalog
+  page, it will be automatically redirected to see all the entities. Furthermore,
+  for the kind User and Group there are no longer the owned selector.
+- Updated dependencies
+  - @backstage/integration@0.7.0
+
+## 0.6.8
+
+### Patch Changes
+
+- 3491a36ab9: added useOwnedEntities hook to get the list of entities of the logged-in user
+- Updated dependencies
+  - @backstage/core-plugin-api@0.4.0
+  - @backstage/core-components@0.8.2
+  - @backstage/catalog-client@0.5.3
+
 ## 0.6.7
 
 ### Patch Changes

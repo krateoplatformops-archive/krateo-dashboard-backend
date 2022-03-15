@@ -15,7 +15,7 @@
  */
 
 import { CatalogApi } from '@backstage/catalog-client';
-import { EntityName } from '@backstage/catalog-model';
+import { CompoundEntityRef } from '@backstage/catalog-model';
 import {
   ConfigApi,
   DiscoveryApi,
@@ -32,7 +32,13 @@ import { PartialEntity } from '../types';
 import { AnalyzeResult, CatalogImportApi } from './CatalogImportApi';
 import { getGithubIntegrationConfig } from './GitHub';
 import { trimEnd } from 'lodash';
+import { getBranchName, getCatalogFilename } from '../components/helpers';
 
+/**
+ * The default implementation of the {@link CatalogImportApi}.
+ *
+ * @public
+ */
 export class CatalogImportClient implements CatalogImportApi {
   private readonly discoveryApi: DiscoveryApi;
   private readonly identityApi: IdentityApi;
@@ -87,13 +93,15 @@ export class CatalogImportClient implements CatalogImportApi {
     const ghConfig = getGithubIntegrationConfig(this.scmIntegrationsApi, url);
     if (!ghConfig) {
       const other = this.scmIntegrationsApi.byUrl(url);
+      const catalogFilename = getCatalogFilename(this.configApi);
+
       if (other) {
         throw new Error(
-          `The ${other.title} integration only supports full URLs to catalog-info.yaml files. Did you try to pass in the URL of a directory instead?`,
+          `The ${other.title} integration only supports full URLs to ${catalogFilename} files. Did you try to pass in the URL of a directory instead?`,
         );
       }
       throw new Error(
-        'This URL was not recognized as a valid GitHub URL because there was no configured integration that matched the given host name. You could try to paste the full URL to a catalog-info.yaml file instead.',
+        `This URL was not recognized as a valid GitHub URL because there was no configured integration that matched the given host name. You could try to paste the full URL to a ${catalogFilename} file instead.`,
       );
     }
 
@@ -127,9 +135,10 @@ export class CatalogImportClient implements CatalogImportApi {
     const appTitle =
       this.configApi.getOptionalString('app.title') ?? 'Backstage';
     const appBaseUrl = this.configApi.getString('app.baseUrl');
+    const catalogFilename = getCatalogFilename(this.configApi);
 
     return {
-      title: 'Add catalog-info.yaml config file',
+      title: `Add ${catalogFilename} config file`,
       body: `This pull request adds a **Backstage entity metadata file** \
 to this repository so that the component can be added to the \
 [${appTitle} software catalog](${appBaseUrl}).\n\nAfter this pull request is merged, \
@@ -138,17 +147,14 @@ the component will become available.\n\nFor more information, read an \
     };
   }
 
-  async submitPullRequest({
-    repositoryUrl,
-    fileContent,
-    title,
-    body,
-  }: {
+  async submitPullRequest(options: {
     repositoryUrl: string;
     fileContent: string;
     title: string;
     body: string;
   }): Promise<{ link: string; location: string }> {
+    const { repositoryUrl, fileContent, title, body } = options;
+
     const ghConfig = getGithubIntegrationConfig(
       this.scmIntegrationsApi,
       repositoryUrl,
@@ -168,22 +174,20 @@ the component will become available.\n\nFor more information, read an \
   }
 
   // TODO: this could be part of the catalog api
-  private async generateEntityDefinitions({
-    repo,
-  }: {
+  private async generateEntityDefinitions(options: {
     repo: string;
   }): Promise<PartialEntity[]> {
-    const idToken = await this.identityApi.getIdToken();
+    const { token } = await this.identityApi.getCredentials();
     const response = await fetch(
       `${await this.discoveryApi.getBaseUrl('catalog')}/analyze-location`,
       {
         headers: {
           'Content-Type': 'application/json',
-          ...(idToken && { Authorization: `Bearer ${idToken}` }),
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
         method: 'POST',
         body: JSON.stringify({
-          location: { type: 'url', target: repo },
+          location: { type: 'url', target: options.repo },
         }),
       },
     ).catch(e => {
@@ -200,12 +204,7 @@ the component will become available.\n\nFor more information, read an \
   }
 
   // TODO: this response should better be part of the analyze-locations response and scm-independent / implemented per scm
-  private async checkGitHubForExistingCatalogInfo({
-    url,
-    owner,
-    repo,
-    githubIntegrationConfig,
-  }: {
+  private async checkGitHubForExistingCatalogInfo(options: {
     url: string;
     owner: string;
     repo: string;
@@ -213,16 +212,18 @@ the component will become available.\n\nFor more information, read an \
   }): Promise<
     Array<{
       target: string;
-      entities: EntityName[];
+      entities: CompoundEntityRef[];
     }>
   > {
+    const { url, owner, repo, githubIntegrationConfig } = options;
+
     const { token } = await this.scmAuthApi.getCredentials({ url });
     const octo = new Octokit({
       auth: token,
       baseUrl: githubIntegrationConfig.apiBaseUrl,
     });
-    const catalogFileName = 'catalog-info.yaml';
-    const query = `repo:${owner}/${repo}+filename:${catalogFileName}`;
+    const catalogFilename = getCatalogFilename(this.configApi);
+    const query = `repo:${owner}/${repo}+filename:${catalogFilename}`;
 
     const searchResult = await octo.search.code({ q: query }).catch(e => {
       throw new Error(
@@ -265,15 +266,7 @@ the component will become available.\n\nFor more information, read an \
   }
 
   // TODO: extract this function and implement for non-github
-  private async submitGitHubPrToRepo({
-    owner,
-    repo,
-    title,
-    body,
-    fileContent,
-    repositoryUrl,
-    githubIntegrationConfig,
-  }: {
+  private async submitGitHubPrToRepo(options: {
     owner: string;
     repo: string;
     title: string;
@@ -282,6 +275,16 @@ the component will become available.\n\nFor more information, read an \
     repositoryUrl: string;
     githubIntegrationConfig: GitHubIntegrationConfig;
   }): Promise<{ link: string; location: string }> {
+    const {
+      owner,
+      repo,
+      title,
+      body,
+      fileContent,
+      repositoryUrl,
+      githubIntegrationConfig,
+    } = options;
+
     const { token } = await this.scmAuthApi.getCredentials({
       url: repositoryUrl,
       additionalScope: {
@@ -294,8 +297,8 @@ the component will become available.\n\nFor more information, read an \
       baseUrl: githubIntegrationConfig.apiBaseUrl,
     });
 
-    const branchName = 'backstage-integration';
-    const fileName = 'catalog-info.yaml';
+    const branchName = getBranchName(this.configApi);
+    const fileName = getCatalogFilename(this.configApi);
 
     const repoData = await octo.repos
       .get({

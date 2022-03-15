@@ -239,37 +239,37 @@ catalog:
         # - target: https://ghe.example.net
         #   apiBaseUrl: https://ghe.example.net/api
         #   token: ${GHE_TOKEN}
-    ldapOrg:
-      ### Example for how to add your enterprise LDAP server
-      providers:
-        - target: ldap://localhost:10389
-          bind:
-            dn: cn=admin,dc=planetexpress,dc=com
-            secret: GoodNewsEveryone
-          users:
-            dn: ou=people,dc=planetexpress,dc=com
-            # options:
-            #   filter: (uid=*)
-            # map:
-            #   description: l
-          groups:
-            dn: ou=people,dc=planetexpress,dc=com
-      ### Example for how to add your enterprise LDAP server
-      # providers:
-      #   - target: ldaps://ds.example.net
-      #     bind:
-      #       dn: uid=ldap-reader-user,ou=people,ou=example,dc=example,dc=net
-      #       secret: ${LDAP_SECRET}
-      #     users:
-      #       dn: ou=people,ou=example,dc=example,dc=net
-      #       options:
-      #         filter: (uid=*)
-      #       map:
-      #         description: l
-      #     groups:
-      #       dn: ou=access,ou=groups,ou=example,dc=example,dc=net
-      #       options:
-      #         filter: (&(objectClass=some-group-class)(!(groupType=email)))
+    # ldapOrg:
+    #   ### Example for how to add your enterprise LDAP server
+    #   providers:
+    #     - target: ldap://localhost:10389
+    #       bind:
+    #         dn: cn=admin,dc=planetexpress,dc=com
+    #         secret: GoodNewsEveryone
+    #       users:
+    #         dn: ou=people,dc=planetexpress,dc=com
+    #         # options:
+    #         #   filter: (uid=*)
+    #         # map:
+    #         #   description: l
+    #       groups:
+    #         dn: ou=people,dc=planetexpress,dc=com
+    ### Example for how to add your enterprise LDAP server
+    # providers:
+    #   - target: ldaps://ds.example.net
+    #     bind:
+    #       dn: uid=ldap-reader-user,ou=people,ou=example,dc=example,dc=net
+    #       secret: ${LDAP_SECRET}
+    #     users:
+    #       dn: ou=people,ou=example,dc=example,dc=net
+    #       options:
+    #         filter: (uid=*)
+    #       map:
+    #         description: l
+    #     groups:
+    #       dn: ou=access,ou=groups,ou=example,dc=example,dc=net
+    #       options:
+    #         filter: (&(objectClass=some-group-class)(!(groupType=email)))
     microsoftGraphOrg:
       ### Example for how to add your Microsoft Graph tenant
       #providers:
@@ -495,3 +495,5 @@ azureDevOps:
 
 apacheAirflow:
   baseUrl: https://your.airflow.instance.com
+
+ldap:

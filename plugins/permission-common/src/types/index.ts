@@ -16,11 +16,21 @@
 
 export { AuthorizeResult } from './api';
 export type {
+  AuthorizeQuery,
   AuthorizeRequest,
+  AuthorizeDecision,
   AuthorizeResponse,
   Identified,
   PermissionCondition,
   PermissionCriteria,
+  AllOfCriteria,
+  AnyOfCriteria,
+  NotCriteria,
 } from './api';
 export type { DiscoveryApi } from './discovery';
-export type { PermissionAttributes, Permission } from './permission';
+export type {
+  PermissionAttributes,
+  Permission,
+  PermissionAuthorizer,
+  AuthorizeRequestOptions,
+} from './permission';

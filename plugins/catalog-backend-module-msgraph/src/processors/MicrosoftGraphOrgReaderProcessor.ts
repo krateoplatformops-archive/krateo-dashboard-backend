@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { LocationSpec } from '@backstage/catalog-model';
 import { Config } from '@backstage/config';
 import {
   CatalogProcessor,
   CatalogProcessorEmit,
-  results,
+  LocationSpec,
+  processingResult,
 } from '@backstage/plugin-catalog-backend';
 import { Logger } from 'winston';
 import {
@@ -34,6 +34,8 @@ import {
 
 /**
  * Extracts teams and users out of a the Microsoft Graph API.
+ *
+ * @public
  */
 export class MicrosoftGraphOrgReaderProcessor implements CatalogProcessor {
   private readonly providers: MicrosoftGraphProviderConfig[];
@@ -71,6 +73,9 @@ export class MicrosoftGraphOrgReaderProcessor implements CatalogProcessor {
     this.groupTransformer = options.groupTransformer;
     this.organizationTransformer = options.organizationTransformer;
   }
+  getProcessorName(): string {
+    return 'MicrosoftGraphOrgReaderProcessor';
+  }
 
   async readLocation(
     location: LocationSpec,
@@ -100,9 +105,13 @@ export class MicrosoftGraphOrgReaderProcessor implements CatalogProcessor {
       client,
       provider.tenantId,
       {
+        userExpand: provider.userExpand,
         userFilter: provider.userFilter,
         userGroupMemberFilter: provider.userGroupMemberFilter,
+        userGroupMemberSearch: provider.userGroupMemberSearch,
+        groupExpand: provider.groupExpand,
         groupFilter: provider.groupFilter,
+        groupSearch: provider.groupSearch,
         userTransformer: this.userTransformer,
         groupTransformer: this.groupTransformer,
         organizationTransformer: this.organizationTransformer,
@@ -117,10 +126,10 @@ export class MicrosoftGraphOrgReaderProcessor implements CatalogProcessor {
 
     // Done!
     for (const group of groups) {
-      emit(results.entity(location, group));
+      emit(processingResult.entity(location, group));
     }
     for (const user of users) {
-      emit(results.entity(location, user));
+      emit(processingResult.entity(location, user));
     }
 
     return true;

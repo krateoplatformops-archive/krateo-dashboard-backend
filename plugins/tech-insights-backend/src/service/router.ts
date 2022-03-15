@@ -27,10 +27,11 @@ import { Logger } from 'winston';
 import { DateTime } from 'luxon';
 import { PersistenceContext } from './persistence/persistenceContext';
 import {
-  EntityRef,
-  parseEntityName,
+  CompoundEntityRef,
+  parseEntityRef,
   stringifyEntityRef,
 } from '@backstage/catalog-model';
+import { errorHandler } from '@backstage/backend-common';
 
 /**
  * @public
@@ -91,14 +92,28 @@ export async function createRouter<
 
     router.post('/checks/run/:namespace/:kind/:name', async (req, res) => {
       const { namespace, kind, name } = req.params;
-      try {
-        const { checks }: { checks: string[] } = req.body;
-        const entityTriplet = stringifyEntityRef({ namespace, kind, name });
-        const checkResult = await factChecker.runChecks(entityTriplet, checks);
-        return res.send(checkResult);
-      } catch (e) {
-        return res.status(500).json({ message: e.message }).send();
-      }
+      const { checks }: { checks: string[] } = req.body;
+      const entityTriplet = stringifyEntityRef({ namespace, kind, name });
+      const checkResult = await factChecker.runChecks(entityTriplet, checks);
+      return res.send(checkResult);
+    });
+
+    router.post('/checks/run', async (req, res) => {
+      const {
+        checks,
+        entities,
+      }: { checks: string[]; entities: CompoundEntityRef[] } = req.body;
+      const tasks = entities.map(async entity => {
+        const entityTriplet =
+          typeof entity === 'string' ? entity : stringifyEntityRef(entity);
+        const results = await factChecker.runChecks(entityTriplet, checks);
+        return {
+          entity: entityTriplet,
+          results,
+        };
+      });
+      const results = await Promise.all(tasks);
+      return res.send(results);
     });
   } else {
     logger.info(
@@ -116,7 +131,7 @@ export async function createRouter<
    */
   router.get('/facts/latest', async (req, res) => {
     const { entity } = req.query;
-    const { namespace, kind, name } = parseEntityName(entity as EntityRef);
+    const { namespace, kind, name } = parseEntityRef(entity as string);
     const ids = req.query.ids as string[];
     return res.send(
       await techInsightsStore.getLatestFactsByIds(
@@ -131,7 +146,7 @@ export async function createRouter<
    */
   router.get('/facts/range', async (req, res) => {
     const { entity } = req.query;
-    const { namespace, kind, name } = parseEntityName(entity as EntityRef);
+    const { namespace, kind, name } = parseEntityRef(entity as string);
 
     const ids = req.query.ids as string[];
     const startDatetime = DateTime.fromISO(req.query.startDatetime as string);
@@ -153,5 +168,7 @@ export async function createRouter<
       ),
     );
   });
+
+  router.use(errorHandler());
   return router;
 }

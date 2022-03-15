@@ -43,12 +43,20 @@ export enum AuthorizeResult {
 }
 
 /**
- * An authorization request for {@link PermissionClient#authorize}.
+ * An individual authorization request for {@link PermissionClient#authorize}.
+ * @public
+ */
+export type AuthorizeQuery = {
+  permission: Permission;
+  resourceRef?: string;
+};
+
+/**
+ * A batch of authorization requests from {@link PermissionClient#authorize}.
  * @public
  */
 export type AuthorizeRequest = {
-  permission: Permission;
-  resourceRef?: string;
+  items: Identified<AuthorizeQuery>[];
 };
 
 /**
@@ -65,22 +73,60 @@ export type PermissionCondition<TParams extends unknown[] = unknown[]> = {
 };
 
 /**
+ * Utility type to represent an array with 1 or more elements.
+ * @ignore
+ */
+type NonEmptyArray<T> = [T, ...T[]];
+
+/**
+ * Represnts a logical AND for the provided criteria.
+ * @public
+ */
+export type AllOfCriteria<TQuery> = {
+  allOf: NonEmptyArray<PermissionCriteria<TQuery>>;
+};
+
+/**
+ * Represnts a logical OR for the provided criteria.
+ * @public
+ */
+export type AnyOfCriteria<TQuery> = {
+  anyOf: NonEmptyArray<PermissionCriteria<TQuery>>;
+};
+
+/**
+ * Represents a negation of the provided criteria.
+ * @public
+ */
+export type NotCriteria<TQuery> = {
+  not: PermissionCriteria<TQuery>;
+};
+
+/**
  * Composes several {@link PermissionCondition}s as criteria with a nested AND/OR structure.
  * @public
  */
 export type PermissionCriteria<TQuery> =
-  | { allOf: PermissionCriteria<TQuery>[] }
-  | { anyOf: PermissionCriteria<TQuery>[] }
-  | { not: PermissionCriteria<TQuery> }
+  | AllOfCriteria<TQuery>
+  | AnyOfCriteria<TQuery>
+  | NotCriteria<TQuery>
   | TQuery;
 
 /**
- * An authorization response from {@link PermissionClient#authorize}.
+ * An individual authorization response from {@link PermissionClient#authorize}.
  * @public
  */
-export type AuthorizeResponse =
+export type AuthorizeDecision =
   | { result: AuthorizeResult.ALLOW | AuthorizeResult.DENY }
   | {
       result: AuthorizeResult.CONDITIONAL;
       conditions: PermissionCriteria<PermissionCondition>;
     };
+
+/**
+ * A batch of authorization responses from {@link PermissionClient#authorize}.
+ * @public
+ */
+export type AuthorizeResponse = {
+  items: Identified<AuthorizeDecision>[];
+};

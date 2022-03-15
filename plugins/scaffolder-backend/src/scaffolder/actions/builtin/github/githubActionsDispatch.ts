@@ -13,20 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ScmIntegrationRegistry } from '@backstage/integration';
+import { InputError } from '@backstage/errors';
+import {
+  GithubCredentialsProvider,
+  ScmIntegrations,
+} from '@backstage/integration';
+import { Octokit } from 'octokit';
 import { createTemplateAction } from '../../createTemplateAction';
-import { OctokitProvider } from './OctokitProvider';
+import { parseRepoUrl } from '../publish/util';
+import { getOctokitOptions } from './helpers';
 
+/**
+ * Creates a new action that dispatches a GitHub Action workflow for a given branch or tag.
+ * @public
+ */
 export function createGithubActionsDispatchAction(options: {
-  integrations: ScmIntegrationRegistry;
+  integrations: ScmIntegrations;
+  githubCredentialsProvider?: GithubCredentialsProvider;
 }) {
-  const { integrations } = options;
-  const octokitProvider = new OctokitProvider(integrations);
+  const { integrations, githubCredentialsProvider } = options;
 
   return createTemplateAction<{
     repoUrl: string;
     workflowId: string;
     branchOrTagName: string;
+    workflowInputs?: { [key: string]: string };
+    token?: string;
   }>({
     id: 'github:actions:dispatch',
     description:
@@ -52,23 +64,54 @@ export function createGithubActionsDispatchAction(options: {
               'The git branch or tag name used to dispatch the workflow',
             type: 'string',
           },
+          workflowInputs: {
+            title: 'Workflow Inputs',
+            description:
+              'Inputs keys and values to send to GitHub Action configured on the workflow file. The maximum number of properties is 10. ',
+            type: 'object',
+          },
+          token: {
+            title: 'Authentication Token',
+            type: 'string',
+            description: 'The GITHUB_TOKEN to use for authorization to GitHub',
+          },
         },
       },
     },
     async handler(ctx) {
-      const { repoUrl, workflowId, branchOrTagName } = ctx.input;
+      const {
+        repoUrl,
+        workflowId,
+        branchOrTagName,
+        workflowInputs,
+        token: providedToken,
+      } = ctx.input;
 
       ctx.logger.info(
         `Dispatching workflow ${workflowId} for repo ${repoUrl} on ${branchOrTagName}`,
       );
 
-      const { client, owner, repo } = await octokitProvider.getOctokit(repoUrl);
+      const { owner, repo } = parseRepoUrl(repoUrl, integrations);
+
+      if (!owner) {
+        throw new InputError('Invalid repository owner provided in repoUrl');
+      }
+
+      const client = new Octokit(
+        await getOctokitOptions({
+          integrations,
+          repoUrl,
+          credentialsProvider: githubCredentialsProvider,
+          token: providedToken,
+        }),
+      );
 
       await client.rest.actions.createWorkflowDispatch({
         owner,
         repo,
         workflow_id: workflowId,
         ref: branchOrTagName,
+        inputs: workflowInputs,
       });
 
       ctx.logger.info(`Workflow ${workflowId} dispatched successfully`);

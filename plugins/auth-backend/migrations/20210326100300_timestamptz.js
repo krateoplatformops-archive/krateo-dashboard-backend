@@ -21,14 +21,14 @@
  */
 exports.up = async function up(knex) {
   // Sqlite does not support alter column.
-  if (knex.client.config.client !== 'sqlite3') {
+  if (knex.client.config.client.includes('sqlite3')) {
     await knex.schema.alterTable('signing_keys', table => {
       table
         .timestamp('created_at', { useTz: true, precision: 0 })
         .notNullable()
         .defaultTo(knex.fn.now())
         .comment('The creation time of the key')
-        .alter();
+        .alter({ alterType: true });
     });
   }
 };
@@ -38,14 +38,14 @@ exports.up = async function up(knex) {
  */
 exports.down = async function down(knex) {
   // Sqlite does not support alter column.
-  if (knex.client.config.client !== 'sqlite3') {
+  if (knex.client.config.client.includes('sqlite3')) {
     await knex.schema.alterTable('signing_keys', table => {
       table
         .timestamp('created_at', { useTz: false, precision: 0 })
         .notNullable()
         .defaultTo(knex.fn.now())
         .comment('The creation time of the key')
-        .alter();
+        .alter({ alterType: true });
     });
   }
 };

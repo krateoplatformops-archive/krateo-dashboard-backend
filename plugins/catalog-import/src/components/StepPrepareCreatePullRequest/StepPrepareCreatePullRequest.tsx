@@ -19,15 +19,16 @@ import { errorApiRef, useApi } from '@backstage/core-plugin-api';
 import { assertError } from '@backstage/errors';
 import {
   catalogApiRef,
-  formatEntityRefTitle,
+  humanizeEntityRef,
 } from '@backstage/plugin-catalog-react';
 import { Box, FormHelperText, Grid, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { UnpackNestedValue, UseFormReturn } from 'react-hook-form';
-import { useAsync } from 'react-use';
+import useAsync from 'react-use/lib/useAsync';
 import YAML from 'yaml';
 import { AnalyzeResult, catalogImportApiRef } from '../../api';
+import { useCatalogFilename } from '../../hooks';
 import { PartialEntity } from '../../types';
 import { BackButton, NextButton } from '../Buttons';
 import { PrepareResult } from '../useImportState';
@@ -52,7 +53,12 @@ type FormData = {
   useCodeowners: boolean;
 };
 
-type Props = {
+/**
+ * Props for {@link StepPrepareCreatePullRequest}.
+ *
+ * @public
+ */
+export interface StepPrepareCreatePullRequestProps {
   analyzeResult: Extract<AnalyzeResult, { type: 'repository' }>;
   onPrepare: (
     result: PrepareResult,
@@ -70,7 +76,7 @@ type Props = {
       groupsLoading: boolean;
     },
   ) => React.ReactNode;
-};
+}
 
 export function generateEntities(
   entities: PartialEntity[],
@@ -92,12 +98,16 @@ export function generateEntities(
   }));
 }
 
-export const StepPrepareCreatePullRequest = ({
-  analyzeResult,
-  onPrepare,
-  onGoBack,
-  renderFormFields,
-}: Props) => {
+/**
+ * Prepares a pull request.
+ *
+ * @public
+ */
+export const StepPrepareCreatePullRequest = (
+  props: StepPrepareCreatePullRequestProps,
+) => {
+  const { analyzeResult, onPrepare, onGoBack, renderFormFields } = props;
+
   const classes = useStyles();
   const catalogApi = useApi(catalogApiRef);
   const catalogImportApi = useApi(catalogImportApiRef);
@@ -105,6 +115,8 @@ export const StepPrepareCreatePullRequest = ({
 
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string>();
+
+  const catalogFilename = useCatalogFilename();
 
   const {
     loading: prDefaultsLoading,
@@ -127,7 +139,7 @@ export const StepPrepareCreatePullRequest = ({
     });
 
     return groupEntities.items
-      .map(e => formatEntityRefTitle(e, { defaultKind: 'group' }))
+      .map(e => humanizeEntityRef(e, { defaultKind: 'group' }))
       .sort();
   });
 
@@ -193,7 +205,7 @@ export const StepPrepareCreatePullRequest = ({
     <>
       <Typography>
         You entered a link to a {analyzeResult.integrationType} repository but a{' '}
-        <code>catalog-info.yaml</code> could not be found. Use this form to open
+        <code>{catalogFilename}</code> could not be found. Use this form to open
         a Pull Request that creates one.
       </Typography>
 

@@ -40,10 +40,7 @@ import {
   CatalogIndexPage,
   catalogPlugin,
 } from '@backstage/plugin-catalog';
-import {
-  CatalogGraphPage,
-  catalogGraphPlugin,
-} from '@backstage/plugin-catalog-graph';
+import { CatalogGraphPage } from '@backstage/plugin-catalog-graph';
 import {
   CatalogImportPage,
   catalogImportPlugin,
@@ -53,7 +50,8 @@ import {
   CostInsightsPage,
   CostInsightsProjectGrowthInstructionsPage,
 } from '@backstage/plugin-cost-insights';
-import { ExplorePage, explorePlugin } from '@backstage/plugin-explore';
+import { orgPlugin } from '@backstage/plugin-org';
+import { ExplorePage } from '@backstage/plugin-explore';
 import { GcpProjectsPage } from '@backstage/plugin-gcp-projects';
 import { GraphiQLPage } from '@backstage/plugin-graphiql';
 import { HomepageCompositionRoot } from '@backstage/plugin-home';
@@ -67,7 +65,6 @@ import {
 import { SearchPage } from '@backstage/plugin-search';
 import { TechRadarPage } from '@backstage/plugin-tech-radar';
 import {
-  DefaultTechDocsHome,
   TechDocsIndexPage,
   techdocsPlugin,
   TechDocsReaderPage,
@@ -88,6 +85,8 @@ import * as plugins from './plugins';
 
 import { techDocsPage } from './components/techdocs/TechDocsPage';
 import { ApacheAirflowPage } from '@backstage/plugin-apache-airflow';
+import { PermissionedRoute } from '@backstage/plugin-permission-react';
+import { catalogEntityCreatePermission } from '@backstage/plugin-catalog-common';
 
 const app = createApp({
   apis,
@@ -113,17 +112,14 @@ const app = createApp({
       createComponent: scaffolderPlugin.routes.root,
       viewTechDoc: techdocsPlugin.routes.docRoot,
     });
-    bind(catalogGraphPlugin.externalRoutes, {
-      catalogEntity: catalogPlugin.routes.catalogEntity,
-    });
     bind(apiDocsPlugin.externalRoutes, {
-      createComponent: scaffolderPlugin.routes.root,
-    });
-    bind(explorePlugin.externalRoutes, {
-      catalogEntity: catalogPlugin.routes.catalogEntity,
+      registerApi: catalogImportPlugin.routes.importPage,
     });
     bind(scaffolderPlugin.externalRoutes, {
       registerComponent: catalogImportPlugin.routes.importPage,
+    });
+    bind(orgPlugin.externalRoutes, {
+      catalogIndex: catalogPlugin.routes.catalogIndex,
     });
   },
 });
@@ -145,7 +141,11 @@ const routes = (
     >
       {entityPage}
     </Route>
-    <Route path="/catalog-import" element={<CatalogImportPage />} />
+    <PermissionedRoute
+      path="/catalog-import"
+      permission={catalogEntityCreatePermission}
+      element={<CatalogImportPage />}
+    />
     <Route
       path="/catalog-graph"
       element={
@@ -168,9 +168,7 @@ const routes = (
         />
       }
     />
-    <Route path="/docs" element={<TechDocsIndexPage />}>
-      <DefaultTechDocsHome />
-    </Route>
+    <Route path="/docs" element={<TechDocsIndexPage />} />
     <Route
       path="/docs/:namespace/:kind/:name/*"
       element={<TechDocsReaderPage />}
@@ -196,7 +194,7 @@ const routes = (
       </ScaffolderFieldExtensions>
     </Route>
     <Route path="/explore" element={<ExplorePage />} />
-    <Route
+    {/* <Route
       path="/tech-radar"
       element={<TechRadarPage width={1500} height={800} />}
     />
@@ -204,11 +202,11 @@ const routes = (
     <Route path="/lighthouse" element={<LighthousePage />} />
     <Route path="/api-docs" element={<ApiExplorerPage />} />
     <Route path="/gcp-projects" element={<GcpProjectsPage />} />
-    <Route path="/newrelic" element={<NewRelicPage />} />
+    <Route path="/newrelic" element={<NewRelicPage />} /> */}
     <Route path="/search" element={<SearchPage />}>
       {searchPage}
     </Route>
-    <Route path="/cost-insights" element={<CostInsightsPage />} />
+    {/* <Route path="/cost-insights" element={<CostInsightsPage />} />
     <Route
       path="/cost-insights/investigating-growth"
       element={<CostInsightsProjectGrowthInstructionsPage />}
@@ -216,10 +214,10 @@ const routes = (
     <Route
       path="/cost-insights/labeling-jobs"
       element={<CostInsightsLabelDataflowInstructionsPage />}
-    />
+    /> */}
     <Route path="/settings" element={<UserSettingsPage />} />
-    <Route path="/azure-pull-requests" element={<AzurePullRequestsPage />} />
-    <Route path="/apache-airflow" element={<ApacheAirflowPage />} />
+    {/* <Route path="/azure-pull-requests" element={<AzurePullRequestsPage />} />
+    <Route path="/apache-airflow" element={<ApacheAirflowPage />} /> */}
   </FlatRoutes>
 );
 

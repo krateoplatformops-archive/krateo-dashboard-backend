@@ -40,28 +40,27 @@ export async function createRouter(
   const router = Router();
   router.use(express.json());
 
-  router.get('/members/:ref', async (request, response) => {
-    const entity_ref = decodeURIComponent(request.params.ref);
-    const data = await dbHandler.getMembers(entity_ref);
+  router.get('/projects/:id/members', async (request, response) => {
+    const members = await dbHandler.getMembers(request.params.id);
 
-    if (data?.length) {
-      response.json({ status: 'ok', data: data });
+    if (members?.length) {
+      response.json({ status: 'ok', data: members });
     } else {
       response.json({ status: 'ok', data: [] });
     }
   });
 
-  router.put('/member', async (request, response) => {
-    const { user_id, entity_ref, picture } = request.body;
-    await dbHandler.addMember(user_id, entity_ref, picture);
+  router.put('/projects/:id/member/:userId', async (request, response) => {
+    const { id, userId } = request.params;
+    await dbHandler.addMember(parseInt(id, 10), userId, request.body?.picture);
 
     response.json({ status: 'ok' });
   });
 
-  router.delete('/member/:ref/:id', async (request, response) => {
-    const { ref, id } = request.params;
+  router.delete('/projects/:id/member/:userId', async (request, response) => {
+    const { id, userId } = request.params;
 
-    const count = await dbHandler.deleteMember(id, ref);
+    const count = await dbHandler.deleteMember(parseInt(id, 10), userId);
 
     if (count) {
       response.json({ status: 'ok' });
@@ -70,36 +69,46 @@ export async function createRouter(
     }
   });
 
-  router.get('/metadata/:ref', async (request, response) => {
-    const ref = decodeURIComponent(request.params.ref);
+  router.get('/projects/:idOrRef', async (request, response) => {
+    const idOrRef = decodeURIComponent(request.params.idOrRef);
+    let data;
 
-    const data = await dbHandler.getMetadata(ref);
+    if (/^-?\d+$/.test(idOrRef)) {
+      data = await dbHandler.getMetadataById(parseInt(idOrRef, 10));
+    } else {
+      data = await dbHandler.getMetadataByRef(idOrRef);
+    }
+
     response.json({ status: 'ok', data: data });
   });
 
-  router.get('/entities', async (_, response) => {
-    const data = await dbHandler.getEntities();
+  router.get('/projects', async (_, response) => {
+    const data = await dbHandler.getProjects();
 
     response.json({ status: 'ok', data: data });
   });
 
-  router.put('/metadata', async (request, response) => {
+  router.put('/projects', async (request, response) => {
     const bazaarProject = request.body;
 
     const count = await dbHandler.updateMetadata(bazaarProject);
 
     if (count) {
       response.json({ status: 'ok' });
-    } else {
-      await dbHandler.insertMetadata(bazaarProject);
-      response.json({ status: 'ok' });
     }
   });
 
-  router.delete('/metadata/:ref', async (request, response) => {
-    const ref = decodeURIComponent(request.params.ref);
+  router.post('/projects', async (request, response) => {
+    const bazaarProject = request.body;
 
-    const count = await dbHandler.deleteMetadata(ref);
+    await dbHandler.insertMetadata(bazaarProject);
+    response.json({ status: 'ok' });
+  });
+
+  router.delete('/projects/:id', async (request, response) => {
+    const id = decodeURIComponent(request.params.id);
+
+    const count = await dbHandler.deleteMetadata(parseInt(id, 10));
 
     if (count) {
       response.json({ status: 'ok' });

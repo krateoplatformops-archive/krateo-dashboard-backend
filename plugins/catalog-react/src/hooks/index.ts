@@ -14,31 +14,28 @@
  * limitations under the License.
  */
 export {
-  EntityContext,
   useEntity,
-  useEntityFromUrl,
   EntityProvider,
   AsyncEntityProvider,
+  useAsyncEntity,
 } from './useEntity';
 export type {
+  EntityLoadingStatus,
   EntityProviderProps,
   AsyncEntityProviderProps,
 } from './useEntity';
-export { useEntityCompoundName } from './useEntityCompoundName';
 export {
   EntityListContext,
   EntityListProvider,
-  useEntityListProvider,
+  useEntityList,
 } from './useEntityListProvider';
-export type { DefaultEntityFilters } from './useEntityListProvider';
+export type {
+  DefaultEntityFilters,
+  EntityListContextProps,
+} from './useEntityListProvider';
 export { useEntityTypeFilter } from './useEntityTypeFilter';
-export { useEntityKinds } from './useEntityKinds';
-export { useOwnUser } from './useOwnUser';
 export { useRelatedEntities } from './useRelatedEntities';
 export { useStarredEntities } from './useStarredEntities';
 export { useStarredEntity } from './useStarredEntity';
-export {
-  loadCatalogOwnerRefs,
-  useEntityOwnership,
-  loadIdentityOwnerRefs,
-} from './useEntityOwnership';
+export { useEntityOwnership } from './useEntityOwnership';
+export { useEntityPermission } from './useEntityPermission';

@@ -1,5 +1,119 @@
 # @backstage/plugin-catalog-backend-module-msgraph
 
+## 0.2.19
+
+### Patch Changes
+
+- 3c2bc73901: Use `setupRequestMockHandlers` from `@backstage/backend-test-utils`
+- Updated dependencies
+  - @backstage/plugin-catalog-backend@0.24.0
+  - @backstage/catalog-model@0.13.0
+
+## 0.2.19-next.0
+
+### Patch Changes
+
+- 3c2bc73901: Use `setupRequestMockHandlers` from `@backstage/backend-test-utils`
+- Updated dependencies
+  - @backstage/plugin-catalog-backend@0.24.0-next.0
+  - @backstage/catalog-model@0.13.0-next.0
+
+## 0.2.18
+
+### Patch Changes
+
+- c820a49426: add config option `groupExpand` to allow expanding a single relationship
+- 83a83381b0: Use the new `processingResult` export from the catalog backend
+- 4bc61a64e2: add documentation for config options `userGroupMemberSearch` and `groupSearch`
+- f9bb6aa0aa: add `userExpand` config option to allow expanding a single relationship
+- Updated dependencies
+  - @backstage/catalog-model@0.12.0
+  - @backstage/plugin-catalog-backend@0.23.0
+
+## 0.2.17
+
+### Patch Changes
+
+- ed09ad8093: Updated usage of the `LocationSpec` type from `@backstage/catalog-model`, which is deprecated.
+- 25e97e7242: Minor wording update
+- a097678475: add configuration to use search criteria to select groups
+- df61ca71dd: Implemented required `getProcessorName` method for catalog processor.
+- Updated dependencies
+  - @backstage/plugin-catalog-backend@0.22.0
+  - @backstage/catalog-model@0.11.0
+
+## 0.2.16
+
+### Patch Changes
+
+- 1ed305728b: Bump `node-fetch` to version 2.6.7 and `cross-fetch` to version 3.1.5
+- c77c5c7eb6: Added `backstage.role` to `package.json`
+- 27eccab216: Replaces use of deprecated catalog-model constants.
+- Updated dependencies
+  - @backstage/plugin-catalog-backend@0.21.4
+  - @backstage/catalog-model@0.10.0
+  - @backstage/config@0.1.14
+
+## 0.2.15
+
+### Patch Changes
+
+- 9b122a780c: Add userExpand option to allow users to expand fields retrieved from the Graph API - for use in custom transformers
+- 7bb1bde7f6: Minor API cleanups
+- Updated dependencies
+  - @backstage/plugin-catalog-backend@0.21.3
+
+## 0.2.15-next.0
+
+### Patch Changes
+
+- 9b122a780c: Add userExpand option to allow users to expand fields retrieved from the Graph API - for use in custom transformers
+- 7bb1bde7f6: Minor API cleanups
+- Updated dependencies
+  - @backstage/plugin-catalog-backend@0.21.3-next.0
+
+## 0.2.14
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-catalog-backend@0.21.2
+
+## 0.2.14-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-catalog-backend@0.21.2-next.0
+
+## 0.2.13
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-catalog-backend@0.21.0
+  - @backstage/config@0.1.13
+  - @backstage/catalog-model@0.9.10
+
+## 0.2.13-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-catalog-backend@0.21.0-next.0
+  - @backstage/config@0.1.13-next.0
+  - @backstage/catalog-model@0.9.10-next.0
+
+## 0.2.12
+
+### Patch Changes
+
+- 722681b1b1: Clean up API report
+- Updated dependencies
+  - @backstage/config@0.1.12
+  - @backstage/plugin-catalog-backend@0.20.0
+  - @backstage/catalog-model@0.9.9
+
 ## 0.2.11
 
 ### Patch Changes

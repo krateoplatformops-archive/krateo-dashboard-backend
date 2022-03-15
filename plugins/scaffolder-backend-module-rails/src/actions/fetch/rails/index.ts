@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Spotify AB
+ * Copyright 2021 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,6 +96,16 @@ export function createFetchRailsAction(options: {
                     description: "Don't run Webpack install",
                     type: 'boolean',
                   },
+                  skipTest: {
+                    title: 'skipTest',
+                    description: 'Skip test files',
+                    type: 'boolean',
+                  },
+                  force: {
+                    title: 'force',
+                    description: 'Overwrite files that already exist',
+                    type: 'boolean',
+                  },
                   api: {
                     title: 'api',
                     description: 'Preconfigure smaller stack for API only apps',
@@ -160,7 +170,7 @@ export function createFetchRailsAction(options: {
       await fetchContents({
         reader,
         integrations,
-        baseUrl: ctx.baseUrl,
+        baseUrl: ctx.templateInfo?.baseUrl,
         fetchUrl: ctx.input.url,
         outputPath: workDir,
       });

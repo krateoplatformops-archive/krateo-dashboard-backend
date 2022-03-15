@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DateTime } from 'luxon';
+
+import { DateTime, DurationLike } from 'luxon';
 import { Config } from '@backstage/config';
 import { PluginEndpointDiscovery } from '@backstage/backend-common';
 import { Logger } from 'winston';
@@ -62,11 +63,10 @@ export type TechInsightFact = {
 };
 
 /**
-
  * Response type used when returning from database and API.
  * Adds a field for ref for easier usage
  *
- *  @public
+ * @public
  */
 export type FlatTechInsightFact = TechInsightFact & {
   /**
@@ -76,12 +76,12 @@ export type FlatTechInsightFact = TechInsightFact & {
 };
 
 /**
- * @public
- *
  * A record type to specify individual fact shapes
  *
  * Used as part of a schema to validate, identify and generically construct usage implementations
  * of individual fact values in the system.
+ *
+ * @public
  */
 export type FactSchema = {
   /**
@@ -142,11 +142,9 @@ export type FactRetrieverContext = {
 };
 
 /**
- * @public
- *
  * FactRetriever interface
  *
- * A component specifying
+ * @public
  */
 export interface FactRetriever {
   /**
@@ -191,18 +189,46 @@ export interface FactRetriever {
 }
 
 /**
- * @public
+ * A Luxon duration like object for time to live value
  *
+ * @public
+ * @example
+ * \{ timeToLive: 1209600000 \}
+ * \{ timeToLive: \{ weeks: 4 \} \}
+ *
+ **/
+export type TTL = { timeToLive: DurationLike };
+
+/**
+ * A maximum number for items to be kept in the database for each fact retriever/entity pair
+ *
+ * @public
+ * @example
+ * \{ maxItems: 10 \}
+ *
+ **/
+export type MaxItems = { maxItems: number };
+
+/**
+ * A fact lifecycle definition. Determines which strategy to use to purge expired facts from the database.
+ *
+ * @public
+ */
+export type FactLifecycle = TTL | MaxItems;
+
+/**
  * A flat serializable structure for Facts.
  * Containing information about fact schema, version, id, and entity filters
+ *
+ * @public
  */
 export type FactSchemaDefinition = Omit<FactRetriever, 'handler'>;
 
 /**
- * @public
- *
  * Registration of a fact retriever
  * Used to add and schedule individual fact retrievers to the fact retriever engine.
+ *
+ * @public
  */
 export type FactRetrieverRegistration = {
   /**
@@ -216,4 +242,11 @@ export type FactRetrieverRegistration = {
    *
    */
   cadence?: string;
+
+  /**
+   * Fact lifecycle definition
+   *
+   * If defined this value will be used to determine expired items which will deleted when this fact retriever is run
+   */
+  lifecycle?: FactLifecycle;
 };

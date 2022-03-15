@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Spotify AB
+ * Copyright 2021 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CatalogClient } from '@backstage/catalog-client';
+
+import { CatalogApi } from '@backstage/catalog-client';
 import {
   Entity,
-  EntityName,
+  CompoundEntityRef,
   stringifyEntityRef,
 } from '@backstage/catalog-model';
 import { Config } from '@backstage/config';
@@ -26,7 +27,7 @@ export interface JenkinsInfoProvider {
     /**
      * The entity to get the info about.
      */
-    entityRef: EntityName;
+    entityRef: CompoundEntityRef;
     /**
      * A specific job to get. This is only passed in when we know about a job name we are interested in.
      */
@@ -38,6 +39,7 @@ export interface JenkinsInfo {
   baseUrl: string;
   headers?: Record<string, string | string[]>;
   jobFullName: string; // TODO: make this an array
+  crumbIssuer?: boolean;
 }
 
 export interface JenkinsInstanceConfig {
@@ -45,6 +47,7 @@ export interface JenkinsInstanceConfig {
   baseUrl: string;
   username: string;
   apiKey: string;
+  crumbIssuer?: boolean;
 }
 
 /**
@@ -70,6 +73,7 @@ export class JenkinsConfig {
         baseUrl: c.getString('baseUrl'),
         username: c.getString('username'),
         apiKey: c.getString('apiKey'),
+        crumbIssuer: c.getOptionalBoolean('crumbIssuer'),
       })) || [];
 
     // load unnamed default config
@@ -81,6 +85,7 @@ export class JenkinsConfig {
     const baseUrl = jenkinsConfig.getOptionalString('baseUrl');
     const username = jenkinsConfig.getOptionalString('username');
     const apiKey = jenkinsConfig.getOptionalString('apiKey');
+    const crumbIssuer = jenkinsConfig.getOptionalBoolean('crumbIssuer');
 
     if (hasNamedDefault && (baseUrl || username || apiKey)) {
       throw new Error(
@@ -98,12 +103,13 @@ export class JenkinsConfig {
 
     if (unnamedAllPresent) {
       const unnamedInstanceConfig = [
-        { name: DEFAULT_JENKINS_NAME, baseUrl, username, apiKey },
+        { name: DEFAULT_JENKINS_NAME, baseUrl, username, apiKey, crumbIssuer },
       ] as {
         name: string;
         baseUrl: string;
         username: string;
         apiKey: string;
+        crumbIssuer: boolean;
       }[];
 
       return new JenkinsConfig([
@@ -162,12 +168,12 @@ export class DefaultJenkinsInfoProvider implements JenkinsInfoProvider {
 
   private constructor(
     private readonly config: JenkinsConfig,
-    private readonly catalog: CatalogClient,
+    private readonly catalog: CatalogApi,
   ) {}
 
   static fromConfig(options: {
     config: Config;
-    catalog: CatalogClient;
+    catalog: CatalogApi;
   }): DefaultJenkinsInfoProvider {
     return new DefaultJenkinsInfoProvider(
       JenkinsConfig.fromConfig(options.config),
@@ -176,11 +182,11 @@ export class DefaultJenkinsInfoProvider implements JenkinsInfoProvider {
   }
 
   async getInstance(opt: {
-    entityRef: EntityName;
+    entityRef: CompoundEntityRef;
     jobFullName?: string;
   }): Promise<JenkinsInfo> {
     // load entity
-    const entity = await this.catalog.getEntityByName(opt.entityRef);
+    const entity = await this.catalog.getEntityByRef(opt.entityRef);
     if (!entity) {
       throw new Error(
         `Couldn't find entity with name: ${stringifyEntityRef(opt.entityRef)}`,
@@ -227,6 +233,7 @@ export class DefaultJenkinsInfoProvider implements JenkinsInfoProvider {
         Authorization: `Basic ${creds}`,
       },
       jobFullName,
+      crumbIssuer: instanceConfig.crumbIssuer,
     };
   }
 

@@ -1,5 +1,151 @@
 # @backstage/backend-test-utils
 
+## 0.1.21
+
+### Patch Changes
+
+- ab7cd7d70e: Do some groundwork for supporting the `better-sqlite3` driver, to maybe eventually replace `@vscode/sqlite3` (#9912)
+- 3c2bc73901: Add `setupRequestMockHandlers` which sets up a good `msw` server foundation, copied from `@backstage/test-utils` which is a frontend-only package and should not be used from backends.
+- Updated dependencies
+  - @backstage/backend-common@0.13.0
+  - @backstage/cli@0.15.2
+
+## 0.1.21-next.0
+
+### Patch Changes
+
+- ab7cd7d70e: Do some groundwork for supporting the `better-sqlite3` driver, to maybe eventually replace `@vscode/sqlite3` (#9912)
+- 3c2bc73901: Add `setupRequestMockHandlers` which sets up a good `msw` server foundation, copied from `@backstage/test-utils` which is a frontend-only package and should not be used from backends.
+- Updated dependencies
+  - @backstage/backend-common@0.13.0-next.0
+  - @backstage/cli@0.15.2-next.0
+
+## 0.1.20
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/backend-common@0.12.0
+  - @backstage/cli@0.15.0
+
+## 0.1.19
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/backend-common@0.11.0
+  - @backstage/cli@0.14.1
+
+## 0.1.18
+
+### Patch Changes
+
+- c77c5c7eb6: Added `backstage.role` to `package.json`
+- Updated dependencies
+  - @backstage/cli@0.14.0
+  - @backstage/backend-common@0.10.8
+  - @backstage/config@0.1.14
+
+## 0.1.17
+
+### Patch Changes
+
+- 2441d1cf59: chore(deps): bump `knex` from 0.95.6 to 1.0.2
+
+  This also replaces `sqlite3` with `@vscode/sqlite3` 5.0.7
+
+- Updated dependencies
+  - @backstage/cli@0.13.2
+  - @backstage/backend-common@0.10.7
+
+## 0.1.17-next.0
+
+### Patch Changes
+
+- 2441d1cf59: chore(deps): bump `knex` from 0.95.6 to 1.0.2
+
+  This also replaces `sqlite3` with `@vscode/sqlite3` 5.0.7
+
+- Updated dependencies
+  - @backstage/cli@0.13.2-next.0
+  - @backstage/backend-common@0.10.7-next.0
+
+## 0.1.16
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/cli@0.13.1
+  - @backstage/backend-common@0.10.6
+
+## 0.1.16-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/cli@0.13.1-next.1
+  - @backstage/backend-common@0.10.6-next.0
+
+## 0.1.16-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/cli@0.13.1-next.0
+
+## 0.1.15
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/cli@0.13.0
+  - @backstage/backend-common@0.10.5
+
+## 0.1.14
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/cli@0.12.0
+  - @backstage/backend-common@0.10.4
+  - @backstage/config@0.1.13
+
+## 0.1.14-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/cli@0.12.0-next.0
+  - @backstage/backend-common@0.10.4-next.0
+  - @backstage/config@0.1.13-next.0
+
+## 0.1.13
+
+### Patch Changes
+
+- b1bc55405e: Bump `testcontainers` dependency to version `8.1.2`
+- Updated dependencies
+  - @backstage/config@0.1.12
+  - @backstage/backend-common@0.10.3
+  - @backstage/cli@0.11.0
+
+## 0.1.12
+
+### Patch Changes
+
+- 130b7aadf2: Lazy-load `testcontainers` module in order to avoid side-effects.
+- Updated dependencies
+  - @backstage/backend-common@0.10.1
+  - @backstage/cli@0.10.4
+
+## 0.1.11
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/backend-common@0.10.0
+  - @backstage/cli@0.10.3
+
 ## 0.1.10
 
 ### Patch Changes

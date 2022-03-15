@@ -28,8 +28,11 @@ import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { Autocomplete } from '@material-ui/lab';
 import React, { useEffect, useMemo, useState } from 'react';
-import { useEntityListProvider } from '../../hooks/useEntityListProvider';
+import { useEntityList } from '../../hooks/useEntityListProvider';
 import { EntityTagFilter } from '../../filters';
+
+/** @public */
+export type CatalogReactEntityTagPickerClassKey = 'input';
 
 const useStyles = makeStyles(
   {
@@ -43,17 +46,28 @@ const useStyles = makeStyles(
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
+/** @public */
 export const EntityTagPicker = () => {
   const classes = useStyles();
   const { updateFilters, backendEntities, filters, queryParameters } =
-    useEntityListProvider();
+    useEntityList();
 
-  const queryParamTags = [queryParameters.tags]
-    .flat()
-    .filter(Boolean) as string[];
+  const queryParamTags = useMemo(
+    () => [queryParameters.tags].flat().filter(Boolean) as string[],
+    [queryParameters],
+  );
+
   const [selectedTags, setSelectedTags] = useState(
     queryParamTags.length ? queryParamTags : filters.tags?.values ?? [],
   );
+
+  // Set selected tags on query parameter updates; this happens at initial page load and from
+  // external updates to the page location.
+  useEffect(() => {
+    if (queryParamTags.length) {
+      setSelectedTags(queryParamTags);
+    }
+  }, [queryParamTags]);
 
   useEffect(() => {
     updateFilters({

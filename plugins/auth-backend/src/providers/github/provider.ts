@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+import {
+  DEFAULT_NAMESPACE,
+  stringifyEntityRef,
+} from '@backstage/catalog-model';
 import express from 'express';
 import { Logger } from 'winston';
 import { Profile as PassportProfile } from 'passport';
@@ -41,10 +45,14 @@ import {
   OAuthStartRequest,
   encodeState,
   OAuthRefreshRequest,
-  OAuthResponse,
 } from '../../lib/oauth';
 import { CatalogIdentityClient } from '../../lib/catalog';
 import { TokenIssuer } from '../../identity';
+
+const ACCESS_TOKEN_PREFIX = 'access-token.';
+
+// TODO(Rugvip): Auth providers need a way to access this in a less hardcoded way
+const BACKSTAGE_SESSION_EXPIRATION = 3600;
 
 type PrivateInfo = {
   refreshToken?: string;
@@ -123,79 +131,141 @@ export class GithubAuthProvider implements OAuthHandlers {
       PrivateInfo
     >(req, this._strategy);
 
+    let refreshToken = privateInfo.refreshToken;
+
+    // If we do not have a real refresh token and we have a non-expiring
+    // access token, then we use that as our refresh token.
+    if (!refreshToken && !result.params.expires_in) {
+      refreshToken = ACCESS_TOKEN_PREFIX + result.accessToken;
+    }
+
     return {
       response: await this.handleResult(result),
-      refreshToken: privateInfo.refreshToken,
+      refreshToken,
     };
   }
 
-  async refresh(req: OAuthRefreshRequest): Promise<OAuthResponse> {
-    const {
-      accessToken,
-      refreshToken: newRefreshToken,
-      params,
-    } = await executeRefreshTokenStrategy(
+  async refresh(req: OAuthRefreshRequest) {
+    // We've enable persisting scope in the OAuth provider, so scope here will
+    // be whatever was stored in the cookie
+    const { scope, refreshToken } = req;
+
+    // This is the OAuth App flow. A non-expiring access token is stored in the
+    // refresh token cookie. We use that token to fetch the user profile and
+    // refresh the Backstage session when needed.
+    if (refreshToken?.startsWith(ACCESS_TOKEN_PREFIX)) {
+      const accessToken = refreshToken.slice(ACCESS_TOKEN_PREFIX.length);
+
+      const fullProfile = await executeFetchUserProfileStrategy(
+        this._strategy,
+        accessToken,
+      ).catch(error => {
+        if (error.oauthError?.statusCode === 401) {
+          throw new Error('Invalid access token');
+        }
+        throw error;
+      });
+
+      return {
+        response: await this.handleResult({
+          fullProfile,
+          params: { scope },
+          accessToken,
+        }),
+        refreshToken,
+      };
+    }
+
+    // This is the App flow, which is close to a standard OAuth refresh flow. It has a
+    // pretty long session expiration, and it also ignores the requested scope, instead
+    // just allowing access to whatever is configured as part of the app installation.
+    const result = await executeRefreshTokenStrategy(
       this._strategy,
-      req.refreshToken,
-      req.scope,
+      refreshToken,
+      scope,
     );
-    const fullProfile = await executeFetchUserProfileStrategy(
-      this._strategy,
-      accessToken,
-    );
-    return this.handleResult({
-      fullProfile,
-      params,
-      accessToken,
-      refreshToken: newRefreshToken,
-    });
+    return {
+      response: await this.handleResult({
+        fullProfile: await executeFetchUserProfileStrategy(
+          this._strategy,
+          result.accessToken,
+        ),
+        params: { ...result.params, scope },
+        accessToken: result.accessToken,
+      }),
+      refreshToken: result.refreshToken,
+    };
   }
 
   private async handleResult(result: GithubOAuthResult) {
-    const { profile } = await this.authHandler(result);
+    const context = {
+      logger: this.logger,
+      catalogIdentityClient: this.catalogIdentityClient,
+      tokenIssuer: this.tokenIssuer,
+    };
+    const { profile } = await this.authHandler(result, context);
 
     const expiresInStr = result.params.expires_in;
-    const response: OAuthResponse = {
-      providerInfo: {
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken, // GitHub expires the old refresh token when used
-        scope: result.params.scope,
-        expiresInSeconds:
-          expiresInStr === undefined ? undefined : Number(expiresInStr),
-      },
-      profile,
-    };
+    let expiresInSeconds =
+      expiresInStr === undefined ? undefined : Number(expiresInStr);
+
+    let backstageIdentity = undefined;
 
     if (this.signInResolver) {
-      response.backstageIdentity = await this.signInResolver(
+      backstageIdentity = await this.signInResolver(
         {
           result,
           profile,
         },
-        {
-          tokenIssuer: this.tokenIssuer,
-          catalogIdentityClient: this.catalogIdentityClient,
-          logger: this.logger,
-        },
+        context,
       );
+
+      // GitHub sessions last longer than Backstage sessions, so if we're using
+      // GitHub for sign-in, then we need to expire the sessions earlier
+      if (expiresInSeconds) {
+        expiresInSeconds = Math.min(
+          expiresInSeconds,
+          BACKSTAGE_SESSION_EXPIRATION,
+        );
+      } else {
+        expiresInSeconds = BACKSTAGE_SESSION_EXPIRATION;
+      }
     }
 
-    return response;
+    return {
+      backstageIdentity,
+      providerInfo: {
+        accessToken: result.accessToken,
+        scope: result.params.scope,
+        expiresInSeconds,
+      },
+      profile,
+    };
   }
 }
 
-export const githubDefaultSignInResolver: SignInResolver<GithubOAuthResult> =
-  async (info, ctx) => {
-    const { fullProfile } = info.result;
+export const githubDefaultSignInResolver: SignInResolver<
+  GithubOAuthResult
+> = async (info, ctx) => {
+  const { fullProfile } = info.result;
 
-    const userId = fullProfile.username || fullProfile.id;
+  const userId = fullProfile.username || fullProfile.id;
 
-    const token = await ctx.tokenIssuer.issueToken({
-      claims: { sub: userId, ent: [`user:default/${userId}`] },
-    });
+  const entityRef = stringifyEntityRef({
+    kind: 'User',
+    namespace: DEFAULT_NAMESPACE,
+    name: userId,
+  });
 
-    return { id: userId, token };
-  };
+  const token = await ctx.tokenIssuer.issueToken({
+    claims: {
+      sub: entityRef,
+      ent: [entityRef],
+    },
+  });
+
+  return { id: userId, token };
+};
 
 export type GithubProviderOptions = {
   /**
@@ -223,7 +293,7 @@ export type GithubProviderOptions = {
    * Providing your own stateEncoder will allow you to add addition parameters to the state field.
    *
    * It is typed as follows:
-   *   export type StateEncoder = (input: OAuthState) => Promise<{encodedState: string}>;
+   *   `export type StateEncoder = (input: OAuthState) => Promise<{encodedState: string}>;`
    *
    * Note: the stateEncoder must encode a 'nonce' value and an 'env' value. Without this, the OAuth flow will fail
    * (These two values will be set by the req.state by default)
@@ -241,6 +311,7 @@ export const createGithubProvider = (
     globalConfig,
     config,
     tokenIssuer,
+    tokenManager,
     catalogApi,
     logger,
   }) =>
@@ -266,7 +337,7 @@ export const createGithubProvider = (
 
       const catalogIdentityClient = new CatalogIdentityClient({
         catalogApi,
-        tokenIssuer,
+        tokenManager,
       });
 
       const authHandler: AuthHandler<GithubOAuthResult> = options?.authHandler
@@ -310,6 +381,7 @@ export const createGithubProvider = (
         persistScopes: true,
         providerId,
         tokenIssuer,
+        callbackUrl,
       });
     });
 };

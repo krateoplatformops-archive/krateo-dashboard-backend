@@ -6,9 +6,34 @@
 import { Config } from '@backstage/config';
 
 // @public
-export type AuthorizeRequest = {
+export type AllOfCriteria<TQuery> = {
+  allOf: NonEmptyArray<PermissionCriteria<TQuery>>;
+};
+
+// @public
+export type AnyOfCriteria<TQuery> = {
+  anyOf: NonEmptyArray<PermissionCriteria<TQuery>>;
+};
+
+// @public
+export type AuthorizeDecision =
+  | {
+      result: AuthorizeResult.ALLOW | AuthorizeResult.DENY;
+    }
+  | {
+      result: AuthorizeResult.CONDITIONAL;
+      conditions: PermissionCriteria<PermissionCondition>;
+    };
+
+// @public
+export type AuthorizeQuery = {
   permission: Permission;
   resourceRef?: string;
+};
+
+// @public
+export type AuthorizeRequest = {
+  items: Identified<AuthorizeQuery>[];
 };
 
 // @public
@@ -17,14 +42,9 @@ export type AuthorizeRequestOptions = {
 };
 
 // @public
-export type AuthorizeResponse =
-  | {
-      result: AuthorizeResult.ALLOW | AuthorizeResult.DENY;
-    }
-  | {
-      result: AuthorizeResult.CONDITIONAL;
-      conditions: PermissionCriteria<PermissionCondition>;
-    };
+export type AuthorizeResponse = {
+  items: Identified<AuthorizeDecision>[];
+};
 
 // @public
 export enum AuthorizeResult {
@@ -56,6 +76,11 @@ export function isReadPermission(permission: Permission): boolean;
 export function isUpdatePermission(permission: Permission): boolean;
 
 // @public
+export type NotCriteria<TQuery> = {
+  not: PermissionCriteria<TQuery>;
+};
+
+// @public
 export type Permission = {
   name: string;
   attributes: PermissionAttributes;
@@ -68,12 +93,21 @@ export type PermissionAttributes = {
 };
 
 // @public
-export class PermissionClient {
-  constructor(options: { discoveryApi: DiscoveryApi; configApi: Config });
+export interface PermissionAuthorizer {
+  // (undocumented)
   authorize(
-    requests: AuthorizeRequest[],
+    queries: AuthorizeQuery[],
     options?: AuthorizeRequestOptions,
-  ): Promise<AuthorizeResponse[]>;
+  ): Promise<AuthorizeDecision[]>;
+}
+
+// @public
+export class PermissionClient implements PermissionAuthorizer {
+  constructor(options: { discovery: DiscoveryApi; config: Config });
+  authorize(
+    queries: AuthorizeQuery[],
+    options?: AuthorizeRequestOptions,
+  ): Promise<AuthorizeDecision[]>;
 }
 
 // @public
@@ -84,14 +118,8 @@ export type PermissionCondition<TParams extends unknown[] = unknown[]> = {
 
 // @public
 export type PermissionCriteria<TQuery> =
-  | {
-      allOf: PermissionCriteria<TQuery>[];
-    }
-  | {
-      anyOf: PermissionCriteria<TQuery>[];
-    }
-  | {
-      not: PermissionCriteria<TQuery>;
-    }
+  | AllOfCriteria<TQuery>
+  | AnyOfCriteria<TQuery>
+  | NotCriteria<TQuery>
   | TQuery;
 ```

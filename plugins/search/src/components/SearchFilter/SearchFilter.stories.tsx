@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Spotify AB
+ * Copyright 2021 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,56 +14,111 @@
  * limitations under the License.
  */
 
-import React from 'react';
 import { Grid, Paper } from '@material-ui/core';
-import { SearchFilter, SearchContext } from '../index';
-import { MemoryRouter } from 'react-router';
+import React, { ComponentType } from 'react';
+import { SearchContextProvider } from '../SearchContext/SearchContextForStorybook.stories';
+import { SearchFilter } from './SearchFilter';
 
 export default {
   title: 'Plugins/Search/SearchFilter',
   component: SearchFilter,
-};
-
-const defaultValue = {
-  filters: {},
+  decorators: [
+    (Story: ComponentType<{}>) => (
+      <SearchContextProvider>
+        <Grid container direction="row">
+          <Grid item xs={4}>
+            <Story />
+          </Grid>
+        </Grid>
+      </SearchContextProvider>
+    ),
+  ],
 };
 
 export const CheckBoxFilter = () => {
   return (
-    <MemoryRouter>
-      {/* @ts-ignore (defaultValue requires more than what is used here) */}
-      <SearchContext.Provider value={defaultValue}>
-        <Grid container direction="row">
-          <Grid item xs={4}>
-            <Paper style={{ padding: 10 }}>
-              <SearchFilter.Checkbox
-                name="Search Checkbox Filter"
-                values={['value1', 'value2']}
-              />
-            </Paper>
-          </Grid>
-        </Grid>
-      </SearchContext.Provider>
-    </MemoryRouter>
+    <Paper style={{ padding: 10 }}>
+      <SearchFilter.Checkbox
+        name="Search Checkbox Filter"
+        values={['value1', 'value2']}
+      />
+    </Paper>
   );
 };
 
 export const SelectFilter = () => {
   return (
-    <MemoryRouter>
-      {/* @ts-ignore (defaultValue requires more than what is used here) */}
-      <SearchContext.Provider value={defaultValue}>
-        <Grid container direction="row">
-          <Grid item xs={4}>
-            <Paper style={{ padding: 10 }}>
-              <SearchFilter.Select
-                name="Search Select Filter"
-                values={['value1', 'value2']}
-              />
-            </Paper>
-          </Grid>
-        </Grid>
-      </SearchContext.Provider>
-    </MemoryRouter>
+    <Paper style={{ padding: 10 }}>
+      <SearchFilter.Select
+        label="Search Select Filter"
+        name="select_filter"
+        values={['value1', 'value2']}
+      />
+    </Paper>
+  );
+};
+
+export const AsyncSelectFilter = () => {
+  return (
+    <Paper style={{ padding: 10 }}>
+      <SearchFilter.Select
+        label="Asynchronous Values"
+        name="async_values"
+        values={async () => {
+          const response = await fetch('https://swapi.dev/api/planets');
+          const json: { results: Array<{ name: string }> } =
+            await response.json();
+          return json.results.map(r => r.name);
+        }}
+      />
+    </Paper>
+  );
+};
+
+export const Autocomplete = () => {
+  return (
+    <Paper style={{ padding: 10 }}>
+      <SearchFilter.Autocomplete
+        name="autocomplete"
+        label="Single-Select Autocomplete Filter"
+        values={['value1', 'value2']}
+      />
+    </Paper>
+  );
+};
+
+export const MultiSelectAutocomplete = () => {
+  return (
+    <Paper style={{ padding: 10 }}>
+      <SearchFilter.Autocomplete
+        multiple
+        name="autocomplete"
+        label="Multi-Select Autocomplete Filter"
+        values={['value1', 'value2']}
+      />
+    </Paper>
+  );
+};
+
+export const AsyncMultiSelectAutocomplete = () => {
+  return (
+    <Paper style={{ padding: 10 }}>
+      <SearchFilter.Autocomplete
+        multiple
+        name="starwarsPerson"
+        label="Starwars Character"
+        values={async partial => {
+          if (partial === '') return [];
+          const response = await fetch(
+            `https://swapi.dev/api/people?search=${encodeURIComponent(
+              partial,
+            )}`,
+          );
+          const json: { results: Array<{ name: string }> } =
+            await response.json();
+          return json.results.map(r => r.name);
+        }}
+      />
+    </Paper>
   );
 };

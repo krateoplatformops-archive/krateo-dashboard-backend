@@ -1,5 +1,159 @@
 # @backstage/plugin-home
 
+## 0.4.18
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-catalog-react@0.9.0
+  - @backstage/core-components@0.9.1
+  - @backstage/catalog-model@0.13.0
+  - @backstage/plugin-search@0.7.3
+
+## 0.4.18-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-catalog-react@0.9.0-next.0
+  - @backstage/core-components@0.9.1-next.0
+  - @backstage/catalog-model@0.13.0-next.0
+  - @backstage/plugin-search@0.7.3-next.0
+
+## 0.4.17
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/catalog-model@0.12.0
+  - @backstage/core-components@0.9.0
+  - @backstage/plugin-search@0.7.2
+  - @backstage/plugin-catalog-react@0.8.0
+  - @backstage/core-plugin-api@0.8.0
+
+## 0.4.16
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.10
+  - @backstage/plugin-catalog-react@0.7.0
+  - @backstage/catalog-model@0.11.0
+  - @backstage/core-plugin-api@0.7.0
+  - @backstage/plugin-search@0.7.1
+
+## 0.4.15
+
+### Patch Changes
+
+- 1ed305728b: Bump `node-fetch` to version 2.6.7 and `cross-fetch` to version 3.1.5
+- c77c5c7eb6: Added `backstage.role` to `package.json`
+- 651b919dbb: Add Renderer support for the HomePageToolkit component.
+
+  Previously `<HomePageToolkit Renderer={ComponentAccordion} Tools={[]} />` would
+  result in the error `can't access property "map", props.tools is undefined`.
+  This change adds a context that can pass props down to the HomePageToolkit.
+  Also introduced is an `expanded` prop on the `ComponentAccordion` to setting
+  the default expanded state. See `In Accordian` story for details.
+
+- Updated dependencies
+  - @backstage/core-components@0.8.9
+  - @backstage/core-plugin-api@0.6.1
+  - @backstage/plugin-catalog-react@0.6.15
+  - @backstage/plugin-search@0.7.0
+  - @backstage/catalog-model@0.10.0
+  - @backstage/theme@0.2.15
+
+## 0.4.14
+
+### Patch Changes
+
+- a4a777441d: Adds new StarredEntities component responsible for rendering a list of starred entities on the home page
+- Updated dependencies
+  - @backstage/core-components@0.8.8
+  - @backstage/plugin-search@0.6.2
+  - @backstage/plugin-catalog-react@0.6.14
+
+## 0.4.14-next.0
+
+### Patch Changes
+
+- a4a777441d: Adds new StarredEntities component responsible for rendering a list of starred entities on the home page
+- Updated dependencies
+  - @backstage/core-components@0.8.8-next.0
+  - @backstage/plugin-search@0.6.2-next.0
+  - @backstage/plugin-catalog-react@0.6.14-next.0
+
+## 0.4.13
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.7
+  - @backstage/plugin-search@0.6.1
+
+## 0.4.13-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.7-next.0
+  - @backstage/plugin-search@0.6.1-next.0
+
+## 0.4.12
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.6
+  - @backstage/plugin-search@0.6.0
+
+## 0.4.11
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.5
+  - @backstage/plugin-search@0.5.6
+  - @backstage/core-plugin-api@0.6.0
+
+## 0.4.11-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.5-next.0
+  - @backstage/core-plugin-api@0.6.0-next.0
+  - @backstage/plugin-search@0.5.6-next.0
+
+## 0.4.10
+
+### Patch Changes
+
+- bdf1419d20: Adds two new home components - CompanyLogo and Toolkit.
+- Updated dependencies
+  - @backstage/core-components@0.8.4
+  - @backstage/core-plugin-api@0.5.0
+  - @backstage/plugin-search@0.5.5
+
+## 0.4.9
+
+### Patch Changes
+
+- 4ce51ab0f1: Internal refactor of the `react-use` imports to use `react-use/lib/*` instead.
+- Updated dependencies
+  - @backstage/core-plugin-api@0.4.1
+  - @backstage/core-components@0.8.3
+
+## 0.4.8
+
+### Patch Changes
+
+- 6d36220ef2: Fix undefined identity bug in `WelcomeTitle` caused by using deprecated methods of the IdentityApi
+- Updated dependencies
+  - @backstage/core-plugin-api@0.4.0
+  - @backstage/core-components@0.8.2
+
 ## 0.4.7
 
 ### Patch Changes

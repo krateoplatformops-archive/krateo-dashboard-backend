@@ -7,7 +7,10 @@
 
 import { ApiRef } from '@backstage/core-plugin-api';
 import { BackstagePlugin } from '@backstage/core-plugin-api';
+import { DiscoveryApi } from '@backstage/core-plugin-api';
 import { Entity } from '@backstage/catalog-model';
+import { IdentityApi } from '@backstage/core-plugin-api';
+import type { JsonObject } from '@backstage/types';
 import { KubernetesRequestBody } from '@backstage/plugin-kubernetes-common';
 import { OAuthApi } from '@backstage/core-plugin-api';
 import { ObjectsByEntityResponse } from '@backstage/plugin-kubernetes-common';
@@ -22,9 +25,7 @@ export const clusterLinksFormatters: Record<string, ClusterLinksFormatter>;
 // Warning: (ae-missing-release-tag) "EntityKubernetesContent" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const EntityKubernetesContent: (_props: {
-  entity?: Entity | undefined;
-}) => JSX.Element;
+export const EntityKubernetesContent: (_props: {}) => JSX.Element;
 
 // Warning: (ae-forgotten-export) The symbol "FormatClusterLinkOptions" needs to be exported by the entry point index.d.ts
 // Warning: (ae-missing-release-tag) "formatClusterLink" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -88,6 +89,27 @@ export interface KubernetesAuthProvidersApi {
 //
 // @public (undocumented)
 export const kubernetesAuthProvidersApiRef: ApiRef<KubernetesAuthProvidersApi>;
+
+// Warning: (ae-missing-release-tag) "KubernetesBackendClient" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export class KubernetesBackendClient implements KubernetesApi {
+  constructor(options: {
+    discoveryApi: DiscoveryApi;
+    identityApi: IdentityApi;
+  });
+  // (undocumented)
+  getClusters(): Promise<
+    {
+      name: string;
+      authProvider: string;
+    }[]
+  >;
+  // (undocumented)
+  getObjectsByEntity(
+    requestBody: KubernetesRequestBody,
+  ): Promise<ObjectsByEntityResponse>;
+}
 
 // Warning: (ae-missing-release-tag) "kubernetesPlugin" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

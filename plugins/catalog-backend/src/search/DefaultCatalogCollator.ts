@@ -18,29 +18,34 @@ import {
   PluginEndpointDiscovery,
   TokenManager,
 } from '@backstage/backend-common';
-import { Entity, UserEntity } from '@backstage/catalog-model';
-import { IndexableDocument, DocumentCollator } from '@backstage/search-common';
+import {
+  Entity,
+  stringifyEntityRef,
+  UserEntity,
+} from '@backstage/catalog-model';
 import { Config } from '@backstage/config';
 import {
   CatalogApi,
   CatalogClient,
-  CatalogEntitiesRequest,
+  GetEntitiesRequest,
 } from '@backstage/catalog-client';
+import {
+  catalogEntityReadPermission,
+  CatalogEntityDocument,
+} from '@backstage/plugin-catalog-common';
 
-export interface CatalogEntityDocument extends IndexableDocument {
-  componentType: string;
-  namespace: string;
-  kind: string;
-  lifecycle: string;
-  owner: string;
-}
-
-export class DefaultCatalogCollator implements DocumentCollator {
+/**
+ * @public
+ * @deprecated Upgrade to a more recent `@backstage/search-backend-node` and
+ * use `DefaultCatalogCollatorFactory` instead.
+ */
+export class DefaultCatalogCollator {
   protected discovery: PluginEndpointDiscovery;
   protected locationTemplate: string;
-  protected filter?: CatalogEntitiesRequest['filter'];
+  protected filter?: GetEntitiesRequest['filter'];
   protected readonly catalogClient: CatalogApi;
   public readonly type: string = 'software-catalog';
+  public readonly visibilityPermission = catalogEntityReadPermission;
   protected tokenManager: TokenManager;
 
   static fromConfig(
@@ -48,7 +53,7 @@ export class DefaultCatalogCollator implements DocumentCollator {
     options: {
       discovery: PluginEndpointDiscovery;
       tokenManager: TokenManager;
-      filter?: CatalogEntitiesRequest['filter'];
+      filter?: GetEntitiesRequest['filter'];
     },
   ) {
     return new DefaultCatalogCollator({
@@ -60,7 +65,7 @@ export class DefaultCatalogCollator implements DocumentCollator {
     discovery: PluginEndpointDiscovery;
     tokenManager: TokenManager;
     locationTemplate?: string;
-    filter?: CatalogEntitiesRequest['filter'];
+    filter?: GetEntitiesRequest['filter'];
     catalogClient?: CatalogApi;
   }) {
     const { discovery, locationTemplate, filter, catalogClient, tokenManager } =
@@ -122,10 +127,14 @@ export class DefaultCatalogCollator implements DocumentCollator {
         }),
         text: this.getDocumentText(entity),
         componentType: entity.spec?.type?.toString() || 'other',
+        type: entity.spec?.type?.toString() || 'other',
         namespace: entity.metadata.namespace || 'default',
         kind: entity.kind,
         lifecycle: (entity.spec?.lifecycle as string) || '',
         owner: (entity.spec?.owner as string) || '',
+        authorization: {
+          resourceRef: stringifyEntityRef(entity),
+        },
       };
     });
   }

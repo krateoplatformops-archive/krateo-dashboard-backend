@@ -23,7 +23,13 @@ import { DatabaseConnector } from './types';
 
 import { mysqlConnector, pgConnector, sqlite3Connector } from './connectors';
 
-type DatabaseClient = 'pg' | 'sqlite3' | 'mysql' | 'mysql2' | string;
+type DatabaseClient =
+  | 'pg'
+  | 'better-sqlite3'
+  | 'sqlite3'
+  | 'mysql'
+  | 'mysql2'
+  | string;
 
 /**
  * Mapping of client type to supported database connectors
@@ -33,6 +39,7 @@ type DatabaseClient = 'pg' | 'sqlite3' | 'mysql' | 'mysql2' | string;
  */
 const ConnectorMapping: Record<DatabaseClient, DatabaseConnector> = {
   pg: pgConnector,
+  'better-sqlite3': sqlite3Connector,
   sqlite3: sqlite3Connector,
   mysql: mysqlConnector,
   mysql2: mysqlConnector,
@@ -56,14 +63,6 @@ export function createDatabaseClient(
     knexFactory(mergeDatabaseConfig(dbConfig.get(), overrides))
   );
 }
-
-/**
- * Alias for createDatabaseClient
- *
- * @public
- * @deprecated Use createDatabaseClient instead
- */
-export const createDatabase = createDatabaseClient;
 
 /**
  * Ensures that the given databases all exist, creating them if they do not.
@@ -100,7 +99,8 @@ export async function ensureSchemaExists(
 }
 
 /**
- * Provides a Knex.Config object with the provided database name for a given client.
+ * Provides a `Knex.Config` object with the provided database name for a given
+ * client.
  */
 export function createNameOverride(
   client: string,
@@ -117,7 +117,8 @@ export function createNameOverride(
 }
 
 /**
- * Provides a Knex.Config object with the provided database schema for a given client. Currently only supported by `pg`.
+ * Provides a `Knex.Config` object with the provided database schema for a given
+ * client. Currently only supported by `pg`.
  */
 export function createSchemaOverride(
   client: string,
@@ -156,7 +157,8 @@ export function parseConnectionString(
 }
 
 /**
- * Normalizes a connection config or string into an object which can be passed to Knex.
+ * Normalizes a connection config or string into an object which can be passed
+ * to Knex.
  */
 export function normalizeConnection(
   connection: Knex.StaticConnectionConfig | JsonObject | string | undefined,

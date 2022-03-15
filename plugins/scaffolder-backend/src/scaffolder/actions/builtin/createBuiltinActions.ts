@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-import { ContainerRunner, UrlReader } from '@backstage/backend-common';
+import { UrlReader } from '@backstage/backend-common';
+import { JsonObject } from '@backstage/types';
 import { CatalogApi } from '@backstage/catalog-client';
-import { ScmIntegrations } from '@backstage/integration';
+import {
+  GithubCredentialsProvider,
+  ScmIntegrations,
+  DefaultGithubCredentialsProvider,
+} from '@backstage/integration';
 import { Config } from '@backstage/config';
 import {
   createCatalogWriteAction,
@@ -25,7 +30,6 @@ import {
 
 import { createDebugLogAction } from './debug';
 import { createFetchPlainAction, createFetchTemplateAction } from './fetch';
-import { createFetchCookiecutterAction } from '@backstage/plugin-scaffolder-backend-module-cookiecutter';
 import {
   createFilesystemDeleteAction,
   createFilesystemRenameAction,
@@ -42,16 +46,41 @@ import {
   createGithubActionsDispatchAction,
   createGithubWebhookAction,
 } from './github';
+import { TemplateFilter } from '../../../lib';
+import { TemplateAction } from '../types';
 
-export const createBuiltinActions = (options: {
+/**
+ * The options passed to {@link createBuiltinActions}
+ * @public
+ */
+export interface CreateBuiltInActionsOptions {
   reader: UrlReader;
   integrations: ScmIntegrations;
   catalogClient: CatalogApi;
-  containerRunner?: ContainerRunner;
   config: Config;
-}) => {
-  const { reader, integrations, containerRunner, catalogClient, config } =
-    options;
+  additionalTemplateFilters?: Record<string, TemplateFilter>;
+}
+
+/**
+ * A function to generate create a list of default actions that the scaffolder provides.
+ * Is called internally in the default setup, but can be used when adding your own actions or overriding the default ones
+ *
+ * @public
+ * @returns A list of actions that can be used in the scaffolder
+ */
+export const createBuiltinActions = (
+  options: CreateBuiltInActionsOptions,
+): TemplateAction<JsonObject>[] => {
+  const {
+    reader,
+    integrations,
+    catalogClient,
+    config,
+    additionalTemplateFilters,
+  } = options;
+
+  const githubCredentialsProvider: GithubCredentialsProvider =
+    DefaultGithubCredentialsProvider.fromIntegrations(integrations);
 
   const actions = [
     createFetchPlainAction({
@@ -61,13 +90,16 @@ export const createBuiltinActions = (options: {
     createFetchTemplateAction({
       integrations,
       reader,
+      additionalTemplateFilters,
     }),
     createPublishGithubAction({
       integrations,
       config,
+      githubCredentialsProvider,
     }),
     createPublishGithubPullRequestAction({
       integrations,
+      githubCredentialsProvider,
     }),
     createPublishGitlabAction({
       integrations,
@@ -91,21 +123,13 @@ export const createBuiltinActions = (options: {
     createFilesystemRenameAction(),
     createGithubActionsDispatchAction({
       integrations,
+      githubCredentialsProvider,
     }),
     createGithubWebhookAction({
       integrations,
+      githubCredentialsProvider,
     }),
   ];
 
-  if (containerRunner) {
-    actions.push(
-      createFetchCookiecutterAction({
-        reader,
-        integrations,
-        containerRunner,
-      }),
-    );
-  }
-
-  return actions;
+  return actions as TemplateAction<JsonObject>[];
 };

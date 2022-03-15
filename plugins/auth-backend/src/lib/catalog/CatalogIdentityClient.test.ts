@@ -14,41 +14,41 @@
  * limitations under the License.
  */
 
+import { TokenManager } from '@backstage/backend-common';
 import { CatalogApi } from '@backstage/catalog-client';
 import {
   RELATION_MEMBER_OF,
   UserEntity,
   UserEntityV1alpha1,
 } from '@backstage/catalog-model';
-import { TokenIssuer } from '../../identity';
 import { CatalogIdentityClient } from './CatalogIdentityClient';
 
 describe('CatalogIdentityClient', () => {
   const catalogApi: jest.Mocked<CatalogApi> = {
     getLocationById: jest.fn(),
-    getEntityByName: jest.fn(),
+    getEntityByRef: jest.fn(),
     getEntities: jest.fn(),
     addLocation: jest.fn(),
     removeLocationById: jest.fn(),
-    getOriginLocationByEntity: jest.fn(),
-    getLocationByEntity: jest.fn(),
+    getLocationByRef: jest.fn(),
     removeEntityByUid: jest.fn(),
     refreshEntity: jest.fn(),
     getEntityAncestors: jest.fn(),
+    getEntityFacets: jest.fn(),
   };
-  const tokenIssuer: jest.Mocked<TokenIssuer> = {
-    issueToken: jest.fn(),
-    listPublicKeys: jest.fn(),
+  const tokenManager: jest.Mocked<TokenManager> = {
+    getToken: jest.fn(),
+    authenticate: jest.fn(),
   };
 
   afterEach(() => jest.resetAllMocks());
 
   it('findUser passes through the correct search params', async () => {
     catalogApi.getEntities.mockResolvedValueOnce({ items: [{} as UserEntity] });
-    tokenIssuer.issueToken.mockResolvedValue('my-token');
+    tokenManager.getToken.mockResolvedValue({ token: 'my-token' });
     const client = new CatalogIdentityClient({
       catalogApi,
-      tokenIssuer,
+      tokenManager,
     });
 
     await client.findUser({ annotations: { key: 'value' } });
@@ -62,11 +62,7 @@ describe('CatalogIdentityClient', () => {
       },
       { token: 'my-token' },
     );
-    expect(tokenIssuer.issueToken).toHaveBeenCalledWith({
-      claims: {
-        sub: 'backstage.io/auth-backend',
-      },
-    });
+    expect(tokenManager.getToken).toHaveBeenCalledWith();
   });
 
   it('resolveCatalogMembership resolves membership', async () => {
@@ -83,8 +79,9 @@ describe('CatalogIdentityClient', () => {
         relations: [
           {
             type: RELATION_MEMBER_OF,
+            targetRef: 'group:default/team-a',
             target: {
-              kind: 'Group',
+              kind: 'group',
               namespace: 'default',
               name: 'team-a',
             },
@@ -104,8 +101,9 @@ describe('CatalogIdentityClient', () => {
         relations: [
           {
             type: RELATION_MEMBER_OF,
+            targetRef: 'group:reality/screen-actors-guild',
             target: {
-              kind: 'Group',
+              kind: 'group',
               namespace: 'reality',
               name: 'screen-actors-guild',
             },
@@ -114,35 +112,39 @@ describe('CatalogIdentityClient', () => {
       },
     ];
     catalogApi.getEntities.mockResolvedValueOnce({ items: mockUsers });
+    tokenManager.getToken.mockResolvedValue({ token: 'my-token' });
 
     const client = new CatalogIdentityClient({
       catalogApi,
-      tokenIssuer,
+      tokenManager,
     });
 
     const claims = await client.resolveCatalogMembership({
       entityRefs: ['inigom', 'User:default/imontoya', 'User:reality/mpatinkin'],
     });
 
-    expect(catalogApi.getEntities).toHaveBeenCalledWith({
-      filter: [
-        {
-          kind: 'user',
-          'metadata.namespace': 'default',
-          'metadata.name': 'inigom',
-        },
-        {
-          kind: 'user',
-          'metadata.namespace': 'default',
-          'metadata.name': 'imontoya',
-        },
-        {
-          kind: 'user',
-          'metadata.namespace': 'reality',
-          'metadata.name': 'mpatinkin',
-        },
-      ],
-    });
+    expect(catalogApi.getEntities).toHaveBeenCalledWith(
+      {
+        filter: [
+          {
+            kind: 'user',
+            'metadata.namespace': 'default',
+            'metadata.name': 'inigom',
+          },
+          {
+            kind: 'user',
+            'metadata.namespace': 'default',
+            'metadata.name': 'imontoya',
+          },
+          {
+            kind: 'user',
+            'metadata.namespace': 'reality',
+            'metadata.name': 'mpatinkin',
+          },
+        ],
+      },
+      { token: 'my-token' },
+    );
 
     expect(claims).toMatchObject([
       'user:default/inigom',

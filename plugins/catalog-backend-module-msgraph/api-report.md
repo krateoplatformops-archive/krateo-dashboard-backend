@@ -9,58 +9,53 @@ import { Config } from '@backstage/config';
 import { EntityProvider } from '@backstage/plugin-catalog-backend';
 import { EntityProviderConnection } from '@backstage/plugin-catalog-backend';
 import { GroupEntity } from '@backstage/catalog-model';
-import { LocationSpec } from '@backstage/catalog-model';
-import { Logger as Logger_2 } from 'winston';
+import { LocationSpec } from '@backstage/plugin-catalog-backend';
+import { Logger } from 'winston';
 import * as MicrosoftGraph from '@microsoft/microsoft-graph-types';
 import * as msal from '@azure/msal-node';
 import { Response as Response_2 } from 'node-fetch';
 import { UserEntity } from '@backstage/catalog-model';
 
-// Warning: (ae-missing-release-tag) "defaultGroupTransformer" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 export function defaultGroupTransformer(
   group: MicrosoftGraph.Group,
   groupPhoto?: string,
 ): Promise<GroupEntity | undefined>;
 
-// Warning: (ae-missing-release-tag) "defaultOrganizationTransformer" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 export function defaultOrganizationTransformer(
   organization: MicrosoftGraph.Organization,
 ): Promise<GroupEntity | undefined>;
 
-// Warning: (ae-missing-release-tag) "defaultUserTransformer" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 export function defaultUserTransformer(
   user: MicrosoftGraph.User,
   userPhoto?: string,
 ): Promise<UserEntity | undefined>;
 
-// Warning: (ae-missing-release-tag) "GroupTransformer" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
+export type GroupMember =
+  | (MicrosoftGraph.Group & {
+      '@odata.type': '#microsoft.graph.user';
+    })
+  | (MicrosoftGraph.User & {
+      '@odata.type': '#microsoft.graph.group';
+    });
+
+// @public
 export type GroupTransformer = (
   group: MicrosoftGraph.Group,
   groupPhoto?: string,
 ) => Promise<GroupEntity | undefined>;
 
-// Warning: (ae-missing-release-tag) "MICROSOFT_GRAPH_GROUP_ID_ANNOTATION" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export const MICROSOFT_GRAPH_GROUP_ID_ANNOTATION =
   'graph.microsoft.com/group-id';
 
-// Warning: (ae-missing-release-tag) "MICROSOFT_GRAPH_TENANT_ID_ANNOTATION" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export const MICROSOFT_GRAPH_TENANT_ID_ANNOTATION =
   'graph.microsoft.com/tenant-id';
 
-// Warning: (ae-missing-release-tag) "MICROSOFT_GRAPH_USER_ID_ANNOTATION" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export const MICROSOFT_GRAPH_USER_ID_ANNOTATION = 'graph.microsoft.com/user-id';
 
@@ -68,7 +63,6 @@ export const MICROSOFT_GRAPH_USER_ID_ANNOTATION = 'graph.microsoft.com/user-id';
 export class MicrosoftGraphClient {
   constructor(baseUrl: string, pca: msal.ConfidentialClientApplication);
   static create(config: MicrosoftGraphProviderConfig): MicrosoftGraphClient;
-  // Warning: (ae-forgotten-export) The symbol "GroupMember" needs to be exported by the entry point index.d.ts
   getGroupMembers(groupId: string): AsyncIterable<GroupMember>;
   // (undocumented)
   getGroupPhoto(groupId: string, sizeId?: string): Promise<string | undefined>;
@@ -76,7 +70,6 @@ export class MicrosoftGraphClient {
     groupId: string,
     maxSize: number,
   ): Promise<string | undefined>;
-  // Warning: (ae-unresolved-link) The @link reference could not be resolved: The package "@backstage/plugin-catalog-backend-module-msgraph" does not have an export "ODataQuery"
   getGroups(query?: ODataQuery): AsyncIterable<MicrosoftGraph.Group>;
   getOrganization(tenantId: string): Promise<MicrosoftGraph.Organization>;
   // (undocumented)
@@ -85,25 +78,29 @@ export class MicrosoftGraphClient {
     userId: string,
     maxSize: number,
   ): Promise<string | undefined>;
-  getUserProfile(userId: string): Promise<MicrosoftGraph.User>;
-  // Warning: (ae-unresolved-link) The @link reference could not be resolved: The package "@backstage/plugin-catalog-backend-module-msgraph" does not have an export "ODataQuery"
+  getUserProfile(
+    userId: string,
+    query?: ODataQuery,
+  ): Promise<MicrosoftGraph.User>;
   getUsers(query?: ODataQuery): AsyncIterable<MicrosoftGraph.User>;
-  // Warning: (ae-unresolved-link) The @link reference could not be resolved: The package "@backstage/plugin-catalog-backend-module-msgraph" does not have an export "ODataQuery"
-  requestApi(path: string, query?: ODataQuery): Promise<Response_2>;
-  // Warning: (ae-forgotten-export) The symbol "ODataQuery" needs to be exported by the entry point index.d.ts
-  // Warning: (ae-unresolved-link) The @link reference could not be resolved: The package "@backstage/plugin-catalog-backend-module-msgraph" does not have an export "ODataQuery"
+  requestApi(
+    path: string,
+    query?: ODataQuery,
+    headers?: Record<string, string>,
+  ): Promise<Response_2>;
   requestCollection<T>(path: string, query?: ODataQuery): AsyncIterable<T>;
-  requestRaw(url: string): Promise<Response_2>;
+  requestRaw(
+    url: string,
+    headers?: Record<string, string>,
+  ): Promise<Response_2>;
 }
 
-// Warning: (ae-missing-release-tag) "MicrosoftGraphOrgEntityProvider" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export class MicrosoftGraphOrgEntityProvider implements EntityProvider {
   constructor(options: {
     id: string;
     provider: MicrosoftGraphProviderConfig;
-    logger: Logger_2;
+    logger: Logger;
     userTransformer?: UserTransformer;
     groupTransformer?: GroupTransformer;
     organizationTransformer?: OrganizationTransformer;
@@ -116,7 +113,7 @@ export class MicrosoftGraphOrgEntityProvider implements EntityProvider {
     options: {
       id: string;
       target: string;
-      logger: Logger_2;
+      logger: Logger;
       userTransformer?: UserTransformer;
       groupTransformer?: GroupTransformer;
       organizationTransformer?: OrganizationTransformer;
@@ -124,17 +121,14 @@ export class MicrosoftGraphOrgEntityProvider implements EntityProvider {
   ): MicrosoftGraphOrgEntityProvider;
   // (undocumented)
   getProviderName(): string;
-  // (undocumented)
   read(): Promise<void>;
 }
 
-// Warning: (ae-missing-release-tag) "MicrosoftGraphOrgReaderProcessor" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export class MicrosoftGraphOrgReaderProcessor implements CatalogProcessor {
   constructor(options: {
     providers: MicrosoftGraphProviderConfig[];
-    logger: Logger_2;
+    logger: Logger;
     userTransformer?: UserTransformer;
     groupTransformer?: GroupTransformer;
     organizationTransformer?: OrganizationTransformer;
@@ -143,12 +137,14 @@ export class MicrosoftGraphOrgReaderProcessor implements CatalogProcessor {
   static fromConfig(
     config: Config,
     options: {
-      logger: Logger_2;
+      logger: Logger;
       userTransformer?: UserTransformer;
       groupTransformer?: GroupTransformer;
       organizationTransformer?: OrganizationTransformer;
     },
   ): MicrosoftGraphOrgReaderProcessor;
+  // (undocumented)
+  getProcessorName(): string;
   // (undocumented)
   readLocation(
     location: LocationSpec,
@@ -157,8 +153,6 @@ export class MicrosoftGraphOrgReaderProcessor implements CatalogProcessor {
   ): Promise<boolean>;
 }
 
-// Warning: (ae-missing-release-tag) "MicrosoftGraphProviderConfig" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export type MicrosoftGraphProviderConfig = {
   target: string;
@@ -167,58 +161,60 @@ export type MicrosoftGraphProviderConfig = {
   clientId: string;
   clientSecret: string;
   userFilter?: string;
+  userExpand?: string;
   userGroupMemberFilter?: string;
+  userGroupMemberSearch?: string;
+  groupExpand?: string;
   groupFilter?: string;
+  groupSearch?: string;
 };
 
-// Warning: (ae-missing-release-tag) "normalizeEntityName" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 export function normalizeEntityName(name: string): string;
 
-// Warning: (ae-missing-release-tag) "OrganizationTransformer" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
+export type ODataQuery = {
+  search?: string;
+  filter?: string;
+  expand?: string;
+  select?: string[];
+};
+
+// @public
 export type OrganizationTransformer = (
   organization: MicrosoftGraph.Organization,
 ) => Promise<GroupEntity | undefined>;
 
-// Warning: (ae-missing-release-tag) "readMicrosoftGraphConfig" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 export function readMicrosoftGraphConfig(
   config: Config,
 ): MicrosoftGraphProviderConfig[];
 
-// Warning: (ae-missing-release-tag) "readMicrosoftGraphOrg" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 export function readMicrosoftGraphOrg(
   client: MicrosoftGraphClient,
   tenantId: string,
   options: {
+    userExpand?: string;
     userFilter?: string;
+    userGroupMemberSearch?: string;
     userGroupMemberFilter?: string;
+    groupExpand?: string;
+    groupSearch?: string;
     groupFilter?: string;
     userTransformer?: UserTransformer;
     groupTransformer?: GroupTransformer;
     organizationTransformer?: OrganizationTransformer;
-    logger: Logger_2;
+    logger: Logger;
   },
 ): Promise<{
   users: UserEntity[];
   groups: GroupEntity[];
 }>;
 
-// Warning: (ae-missing-release-tag) "UserTransformer" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 export type UserTransformer = (
   user: MicrosoftGraph.User,
   userPhoto?: string,
 ) => Promise<UserEntity | undefined>;
-
-// Warnings were encountered during analysis:
-//
-// src/microsoftGraph/config.d.ts:28:8 - (tsdoc-undefined-tag) The TSDoc tag "@visibility" is not defined in this configuration
 ```

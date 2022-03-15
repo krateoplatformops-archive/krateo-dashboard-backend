@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+import {
+  DEFAULT_NAMESPACE,
+  stringifyEntityRef,
+} from '@backstage/catalog-model';
 import express from 'express';
 import { SamlConfig } from 'passport-saml/lib/passport-saml/types';
 import {
@@ -93,12 +97,18 @@ export class SamlAuthProvider implements AuthProviderRouteHandlers {
     res: express.Response,
   ): Promise<void> {
     try {
+      const context = {
+        logger: this.logger,
+        catalogIdentityClient: this.catalogIdentityClient,
+        tokenIssuer: this.tokenIssuer,
+      };
+
       const { result } = await executeFrameHandlerStrategy<SamlAuthResult>(
         req,
         this.strategy,
       );
 
-      const { profile } = await this.authHandler(result);
+      const { profile } = await this.authHandler(result, context);
 
       const response: AuthResponse<{}> = {
         profile,
@@ -111,11 +121,7 @@ export class SamlAuthProvider implements AuthProviderRouteHandlers {
             result,
             profile,
           },
-          {
-            tokenIssuer: this.tokenIssuer,
-            catalogIdentityClient: this.catalogIdentityClient,
-            logger: this.logger,
-          },
+          context,
         );
 
         response.backstageIdentity =
@@ -148,8 +154,17 @@ const samlDefaultSignInResolver: SignInResolver<SamlAuthResult> = async (
 ) => {
   const id = info.result.fullProfile.nameID;
 
+  const entityRef = stringifyEntityRef({
+    kind: 'User',
+    namespace: DEFAULT_NAMESPACE,
+    name: id,
+  });
+
   const token = await ctx.tokenIssuer.issueToken({
-    claims: { sub: id },
+    claims: {
+      sub: entityRef,
+      ent: [entityRef],
+    },
   });
 
   return { id, token };
@@ -185,12 +200,13 @@ export const createSamlProvider = (
     globalConfig,
     config,
     tokenIssuer,
+    tokenManager,
     catalogApi,
     logger,
   }) => {
     const catalogIdentityClient = new CatalogIdentityClient({
       catalogApi,
-      tokenIssuer,
+      tokenManager,
     });
 
     const authHandler: AuthHandler<SamlAuthResult> = options?.authHandler

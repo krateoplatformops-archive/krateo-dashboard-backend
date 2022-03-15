@@ -15,19 +15,19 @@
  */
 
 import {
-  CatalogEntitiesRequest,
-  CatalogListResponse,
+  GetEntitiesRequest,
+  GetEntitiesResponse,
 } from '@backstage/catalog-client';
 import { Entity, GroupEntity, UserEntity } from '@backstage/catalog-model';
 import {
   CatalogApi,
   catalogApiRef,
   EntityProvider,
-  catalogRouteRef,
 } from '@backstage/plugin-catalog-react';
 import { renderInTestApp, TestApiProvider } from '@backstage/test-utils';
 import { queryByText } from '@testing-library/react';
 import React from 'react';
+import { catalogIndexRouteRef } from '../../../routes';
 import { OwnershipCard } from './OwnershipCard';
 
 const items = [
@@ -43,10 +43,11 @@ const items = [
     relations: [
       {
         type: 'ownedBy',
+        targetRef: 'group:default/my-team',
         target: {
           name: 'my-team',
           namespace: 'default',
-          kind: 'Group',
+          kind: 'group',
         },
       },
     ],
@@ -62,10 +63,11 @@ const items = [
     relations: [
       {
         type: 'ownedBy',
+        targetRef: 'group:default/my-team',
         target: {
           name: 'my-team',
           namespace: 'default',
-          kind: 'Group',
+          kind: 'group',
         },
       },
     ],
@@ -82,10 +84,11 @@ const items = [
     relations: [
       {
         type: 'ownedBy',
+        targetRef: 'group:default/my-team',
         target: {
           name: 'my-team',
           namespace: 'default',
-          kind: 'Group',
+          kind: 'group',
         },
       },
     ],
@@ -99,10 +102,11 @@ const items = [
     relations: [
       {
         type: 'ownedBy',
+        targetRef: 'group:default/my-team',
         target: {
           name: 'my-team',
           namespace: 'default',
-          kind: 'Group',
+          kind: 'group',
         },
       },
     ],
@@ -110,15 +114,15 @@ const items = [
 ] as Entity[];
 
 const getEntitiesMock = (
-  request?: CatalogEntitiesRequest,
-): Promise<CatalogListResponse<Entity>> => {
+  request?: GetEntitiesRequest,
+): Promise<GetEntitiesResponse> => {
   const filterKinds =
     !Array.isArray(request?.filter) && Array.isArray(request?.filter?.kind)
       ? request?.filter?.kind ?? []
       : []; // we expect the request to be like { filter: { kind: ['API','System'], .... }. If changed in OwnerShipCard, let's change in also here
   return Promise.resolve({
     items: items.filter(item => filterKinds.find(k => k === item.kind)),
-  } as CatalogListResponse<Entity>);
+  } as GetEntitiesResponse);
 };
 
 describe('OwnershipCard', () => {
@@ -135,9 +139,10 @@ describe('OwnershipCard', () => {
     relations: [
       {
         type: 'memberOf',
+        targetRef: 'group:default/examplegroup',
         target: {
           kind: 'group',
-          name: 'ExampleGroup',
+          name: 'examplegroup',
           namespace: 'default',
         },
       },
@@ -159,7 +164,7 @@ describe('OwnershipCard', () => {
       </TestApiProvider>,
       {
         mountedRoutes: {
-          '/create': catalogRouteRef,
+          '/create': catalogIndexRouteRef,
         },
       },
     );
@@ -205,7 +210,7 @@ describe('OwnershipCard', () => {
       </TestApiProvider>,
       {
         mountedRoutes: {
-          '/create': catalogRouteRef,
+          '/create': catalogIndexRouteRef,
         },
       },
     );
@@ -236,14 +241,14 @@ describe('OwnershipCard', () => {
       </TestApiProvider>,
       {
         mountedRoutes: {
-          '/create': catalogRouteRef,
+          '/create': catalogIndexRouteRef,
         },
       },
     );
 
     expect(getByText('OPENAPI').closest('a')).toHaveAttribute(
       'href',
-      '/create/?filters%5Bkind%5D=API&filters%5Btype%5D=openapi&filters%5Bowners%5D%5B0%5D=my-team&filters%5Buser%5D=all',
+      '/create/?filters%5Bkind%5D=API&filters%5Btype%5D=openapi&filters%5Bowners%5D=my-team&filters%5Buser%5D=all',
     );
   });
 
@@ -260,8 +265,9 @@ describe('OwnershipCard', () => {
       relations: [
         {
           type: 'memberOf',
+          targetRef: 'group:default/my-team',
           target: {
-            kind: 'Group',
+            kind: 'group',
             name: 'my-team',
             namespace: 'default',
           },
@@ -282,14 +288,14 @@ describe('OwnershipCard', () => {
       </TestApiProvider>,
       {
         mountedRoutes: {
-          '/create': catalogRouteRef,
+          '/create': catalogIndexRouteRef,
         },
       },
     );
 
     expect(getByText('OPENAPI').closest('a')).toHaveAttribute(
       'href',
-      '/create/?filters%5Bkind%5D=API&filters%5Btype%5D=openapi&filters%5Bowners%5D%5B0%5D=user%3Athe-user&filters%5Bowners%5D%5B1%5D=my-team&filters%5Buser%5D=all',
+      '/create/?filters%5Bkind%5D=API&filters%5Btype%5D=openapi&filters%5Bowners%5D=user%3Athe-user&filters%5Bowners%5D=my-team&filters%5Buser%5D=all',
     );
   });
 });

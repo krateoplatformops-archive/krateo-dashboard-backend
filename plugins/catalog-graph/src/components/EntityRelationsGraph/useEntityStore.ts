@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Entity, parseEntityRef } from '@backstage/catalog-model';
+import { Entity } from '@backstage/catalog-model';
 import { useApi } from '@backstage/core-plugin-api';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
 import limiterFactory from 'p-limit';
 import { Dispatch, useCallback, useRef, useState } from 'react';
-import { useAsyncFn } from 'react-use';
+import useAsyncFn from 'react-use/lib/useAsyncFn';
 
 // TODO: This is a good use case for a graphql API, once it is available in the
 // future.
@@ -73,9 +73,7 @@ export function useEntityStore(): {
             return;
           }
 
-          const promise = catalogClient.getEntityByName(
-            parseEntityRef(entityRef),
-          );
+          const promise = catalogClient.getEntityByRef(entityRef);
 
           outstandingEntities.set(entityRef, promise);
 

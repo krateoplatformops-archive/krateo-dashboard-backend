@@ -22,14 +22,16 @@ import {
   SupportButton,
 } from '@backstage/core-components';
 import { useAnalytics, useRouteRef } from '@backstage/core-plugin-api';
-import { formatEntityRefTitle } from '@backstage/plugin-catalog-react';
+import {
+  entityRouteRef,
+  humanizeEntityRef,
+} from '@backstage/plugin-catalog-react';
 import { Grid, makeStyles, Paper, Typography } from '@material-ui/core';
 import FilterListIcon from '@material-ui/icons/FilterList';
 import ZoomOutMap from '@material-ui/icons/ZoomOutMap';
 import { ToggleButton } from '@material-ui/lab';
 import React, { MouseEvent, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import { catalogEntityRouteRef } from '../../routes';
 import {
   ALL_RELATION_PAIRS,
   Direction,
@@ -114,7 +116,7 @@ export const CatalogGraphPage = ({
 }) => {
   const navigate = useNavigate();
   const classes = useStyles();
-  const catalogEntityRoute = useRouteRef(catalogEntityRouteRef);
+  const catalogEntityRoute = useRouteRef(entityRouteRef);
   const {
     maxDepth,
     setMaxDepth,
@@ -147,14 +149,14 @@ export const CatalogGraphPage = ({
 
         analytics.captureEvent(
           'click',
-          node.title ?? formatEntityRefTitle(nodeEntityName),
+          node.title ?? humanizeEntityRef(nodeEntityName),
           { attributes: { to: path } },
         );
         navigate(path);
       } else {
         analytics.captureEvent(
           'click',
-          node.title ?? formatEntityRefTitle(nodeEntityName),
+          node.title ?? humanizeEntityRef(nodeEntityName),
         );
         setRootEntityNames([nodeEntityName]);
       }
@@ -166,7 +168,7 @@ export const CatalogGraphPage = ({
     <Page themeId="home">
       <Header
         title="Catalog Graph"
-        subtitle={rootEntityNames.map(e => formatEntityRefTitle(e)).join(', ')}
+        subtitle={rootEntityNames.map(e => humanizeEntityRef(e)).join(', ')}
       />
       <Content stretch className={classes.content}>
         <ContentHeader

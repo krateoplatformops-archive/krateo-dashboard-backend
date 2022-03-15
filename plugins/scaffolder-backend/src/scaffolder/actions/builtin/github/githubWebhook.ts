@@ -13,20 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ScmIntegrationRegistry } from '@backstage/integration';
+import {
+  GithubCredentialsProvider,
+  ScmIntegrationRegistry,
+} from '@backstage/integration';
 import { createTemplateAction } from '../../createTemplateAction';
-import { OctokitProvider } from './OctokitProvider';
 import { emitterEventNames } from '@octokit/webhooks';
-import { assertError } from '@backstage/errors';
+import { assertError, InputError } from '@backstage/errors';
+import { Octokit } from 'octokit';
+import { getOctokitOptions } from './helpers';
+import { parseRepoUrl } from '../publish/util';
 
-type ContentType = 'form' | 'json';
-
+/**
+ * Creates new action that creates a webhook for a repository on GitHub.
+ * @public
+ */
 export function createGithubWebhookAction(options: {
   integrations: ScmIntegrationRegistry;
   defaultWebhookSecret?: string;
+  githubCredentialsProvider?: GithubCredentialsProvider;
 }) {
-  const { integrations, defaultWebhookSecret } = options;
-  const octokitProvider = new OctokitProvider(integrations);
+  const { integrations, defaultWebhookSecret, githubCredentialsProvider } =
+    options;
+
   const eventNames = emitterEventNames.filter(event => !event.includes('.'));
 
   return createTemplateAction<{
@@ -35,8 +44,9 @@ export function createGithubWebhookAction(options: {
     webhookSecret?: string;
     events?: string[];
     active?: boolean;
-    contentType?: ContentType;
+    contentType?: 'form' | 'json';
     insecureSsl?: boolean;
+    token?: string;
   }>({
     id: 'github:webhook',
     description: 'Creates webhook for a repository on GitHub.',
@@ -97,6 +107,11 @@ export function createGithubWebhookAction(options: {
             type: 'boolean',
             description: `Determines whether the SSL certificate of the host for url will be verified when delivering payloads. Default 'false'`,
           },
+          token: {
+            title: 'Authentication Token',
+            type: 'string',
+            description: 'The GITHUB_TOKEN to use for authorization to GitHub',
+          },
         },
       },
     },
@@ -109,15 +124,28 @@ export function createGithubWebhookAction(options: {
         active = true,
         contentType = 'form',
         insecureSsl = false,
+        token: providedToken,
       } = ctx.input;
 
       ctx.logger.info(`Creating webhook ${webhookUrl} for repo ${repoUrl}`);
+      const { owner, repo } = parseRepoUrl(repoUrl, integrations);
 
-      const { client, owner, repo } = await octokitProvider.getOctokit(repoUrl);
+      if (!owner) {
+        throw new InputError('Invalid repository owner provided in repoUrl');
+      }
+
+      const client = new Octokit(
+        await getOctokitOptions({
+          integrations,
+          credentialsProvider: githubCredentialsProvider,
+          repoUrl: repoUrl,
+          token: providedToken,
+        }),
+      );
 
       try {
         const insecure_ssl = insecureSsl ? '1' : '0';
-        await client.repos.createWebhook({
+        await client.rest.repos.createWebhook({
           owner,
           repo,
           config: {

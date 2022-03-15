@@ -15,21 +15,42 @@
  */
 
 import { createApiRef } from '@backstage/core-plugin-api';
-import { CheckResult } from '@backstage/plugin-tech-insights-common';
+import {
+  CheckResult,
+  BulkCheckResponse,
+} from '@backstage/plugin-tech-insights-common';
 import { Check } from './types';
 import { CheckResultRenderer } from '../components/CheckResultRenderer';
-import { EntityName } from '@backstage/catalog-model';
+import { CompoundEntityRef } from '@backstage/catalog-model';
 
+/**
+ * {@link @backstage/core-plugin-api#ApiRef} for the {@link TechInsightsApi}
+ *
+ * @public
+ */
 export const techInsightsApiRef = createApiRef<TechInsightsApi>({
   id: 'plugin.techinsights.service',
-  description: 'Used by the tech insights plugin to make requests',
 });
 
+/**
+ * API client interface for the Tech Insights plugin
+ *
+ * @public
+ */
 export interface TechInsightsApi {
   getScorecardsDefinition: (
     type: string,
     value: CheckResult[],
+    title?: string,
+    description?: string,
   ) => CheckResultRenderer | undefined;
   getAllChecks(): Promise<Check[]>;
-  runChecks(entityParams: EntityName, checks?: Check[]): Promise<CheckResult[]>;
+  runChecks(
+    entityParams: CompoundEntityRef,
+    checks?: Check[],
+  ): Promise<CheckResult[]>;
+  runBulkChecks(
+    entities: CompoundEntityRef[],
+    checks?: Check[],
+  ): Promise<BulkCheckResponse>;
 }

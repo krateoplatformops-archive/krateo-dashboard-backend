@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-import { DockerContainerRunner } from '@backstage/backend-common';
 import { CatalogClient } from '@backstage/catalog-client';
 import { createRouter } from '@backstage/plugin-scaffolder-backend';
-import Docker from 'dockerode';
 import { Router } from 'express';
 import type { PluginEnvironment } from '../types';
-import { ScmIntegrations } from '@backstage/integration';
 import { createBuiltinActions } from '@backstage/plugin-scaffolder-backend';
-
+import { ScmIntegrations } from '@backstage/integration';
 import {
   createArgoCDAction,
   creategitHubProtectionAction,
@@ -41,18 +38,14 @@ export default async function createPlugin({
   reader,
   discovery,
 }: PluginEnvironment): Promise<Router> {
-  const dockerClient = new Docker();
-  const containerRunner = new DockerContainerRunner({ dockerClient });
-
   const catalogClient = new CatalogClient({ discoveryApi: discovery });
 
   const integrations = ScmIntegrations.fromConfig(config);
 
   const builtInActions = createBuiltinActions({
-    containerRunner,
     integrations,
-    config,
     catalogClient,
+    config,
     reader,
   });
 
@@ -73,12 +66,11 @@ export default async function createPlugin({
   ];
 
   return await createRouter({
-    containerRunner,
     logger,
     config,
     database,
     catalogClient,
     reader,
-    actions,
+    actions
   });
 }

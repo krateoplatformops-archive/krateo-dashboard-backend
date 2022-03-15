@@ -1,5 +1,304 @@
 # @backstage/plugin-catalog
 
+## 0.10.0
+
+### Minor Changes
+
+- 51856359bf: **BREAKING**: Removed the `AboutCard` component which has been replaced by `EntityAboutCard`.
+- 5ea9509e6a: **BREAKING**: Removed `CatalogResultListItemProps` and `CatalogResultListItem`, replaced by `CatalogSearchResultListItemProps` and `CatalogSearchResultListItem`.
+
+### Patch Changes
+
+- 9a06d18385: Added an `allowedKinds` option to `CatalogKindHeader` to limit entity kinds available in the dropdown.
+- 251688a75e: Updated `CatalogKindHeader` to respond to external changes to query parameters in the URL, such as two sidebar links that apply different catalog filters.
+- 9844d4d2bd: Removed usage of removed hook.
+- 3e54f6c436: Use `@backstage/plugin-search-common` package instead of `@backstage/search-common`.
+- Updated dependencies
+  - @backstage/plugin-catalog-react@0.9.0
+  - @backstage/core-components@0.9.1
+  - @backstage/catalog-model@0.13.0
+  - @backstage/plugin-catalog-common@0.2.2
+  - @backstage/plugin-search-common@0.3.1
+  - @backstage/catalog-client@0.9.0
+  - @backstage/integration-react@0.1.25
+
+## 0.10.0-next.0
+
+### Minor Changes
+
+- 51856359bf: **BREAKING**: Removed the `AboutCard` component which has been replaced by `EntityAboutCard`.
+- 5ea9509e6a: **BREAKING**: Removed `CatalogResultListItemProps` and `CatalogResultListItem`, replaced by `CatalogSearchResultListItemProps` and `CatalogSearchResultListItem`.
+
+### Patch Changes
+
+- 251688a75e: Updated `CatalogKindHeader` to respond to external changes to query parameters in the URL, such as two sidebar links that apply different catalog filters.
+- 9844d4d2bd: Removed usage of removed hook.
+- 3e54f6c436: Use `@backstage/plugin-search-common` package instead of `@backstage/search-common`.
+- Updated dependencies
+  - @backstage/plugin-catalog-react@0.9.0-next.0
+  - @backstage/core-components@0.9.1-next.0
+  - @backstage/catalog-model@0.13.0-next.0
+  - @backstage/plugin-catalog-common@0.2.2-next.0
+  - @backstage/plugin-search-common@0.3.1-next.0
+  - @backstage/catalog-client@0.9.0-next.0
+  - @backstage/integration-react@0.1.25-next.0
+
+## 0.9.1
+
+### Patch Changes
+
+- 899f196af5: Use `getEntityByRef` instead of `getEntityByName` in the catalog client
+- f41a293231: - **DEPRECATION**: Deprecated `formatEntityRefTitle` in favor of the new `humanizeEntityRef` method instead. Please migrate to using the new method instead.
+- f590d1681b: Removed usage of deprecated favorite utility methods.
+- 44403296e7: Added the following deprecations to the `catalog-react` package:
+
+  - **DEPRECATION**: `useEntity` will now warn if the entity has not yet been loaded, and will soon throw errors instead. If you're using the default implementation of `EntityLayout` and `EntitySwitch` then these components will ensure that there is an entity loaded before rendering children. If you're implementing your own `EntityLayout` or `EntitySwitch` or something that operates outside or adjacent to them, then use `useAsyncEntity`.
+
+  - **DEPRECATION**: the `loading`, `error` and `refresh` properties that are returned from `useEntity` have been deprecated, and are available on `useAsyncEntity` instead.
+
+- da79aac2a6: - Replaced usage of the deprecated and now removed `rootRoute` and `catalogRouteRef`s from the `catalog-react` package
+- 36aa63022b: Use `CompoundEntityRef` instead of `EntityName`, and `getCompoundEntityRef` instead of `getEntityName`, from `@backstage/catalog-model`.
+- 8f0e8e039b: Removed usage of deprecated `getEntityMetadataViewUrl` and `getEntityMetadataEditUrl` helpers.
+- Updated dependencies
+  - @backstage/catalog-model@0.12.0
+  - @backstage/catalog-client@0.8.0
+  - @backstage/core-components@0.9.0
+  - @backstage/plugin-catalog-react@0.8.0
+  - @backstage/plugin-catalog-common@0.2.0
+  - @backstage/core-plugin-api@0.8.0
+  - @backstage/search-common@0.3.0
+  - @backstage/integration-react@0.1.24
+
+## 0.9.0
+
+### Minor Changes
+
+- e7b9c3d713: Removed `columnFactories`, which was accidentally exported on the previous release.
+- 2262fe19c9: **BREAKING**: Removed support for passing in an explicit `entity` prop to entity page extensions, which has been deprecated for a long time. This is only a breaking change at the TypeScript level, as this property was already ignored.
+- 3c4376e5e7: **BREAKING**: Removed the old `plugin` export, use `catalogPlugin` instead.
+
+### Patch Changes
+
+- 2d339b5f2c: Internalize deprecated `useEntityFromUrl` hook
+- a686702dbe: Renamed `CatalogResultListItem` to `CatalogSearchResultListItem` along with its prop type, leaving the old names in place as a deprecations.
+- 852d5ff758: Added `EntitySwitchProps` type for `EntitySwitch`.
+- a8331830f1: Remove use of deprecated `useEntityKinds` hook.
+- 6e1cbc12a6: Updated according to the new `getEntityFacets` catalog API method
+- b776ce5aab: Replaced use of deprecated `useEntityListProvider` hook with `useEntityList`.
+- 3334ad47d4: Removed usage of `EntityContext`.
+- 919cf2f836: Minor updates to match the new `targetRef` field of relations, and to stop consuming the `target` field
+- Updated dependencies
+  - @backstage/core-components@0.8.10
+  - @backstage/plugin-catalog-react@0.7.0
+  - @backstage/catalog-model@0.11.0
+  - @backstage/catalog-client@0.7.2
+  - @backstage/core-plugin-api@0.7.0
+  - @backstage/integration-react@0.1.23
+
+## 0.8.0
+
+### Minor Changes
+
+- ae7edbea45: Removed `CatalogClientWrapper` as usage have been replaced by the `fetchApiRef`.
+- 37092662cb: **BREAKING** Completely removed the `EntitySystemDiagramCard` component which was deprecated in a previous release. Any remaining references to this component are now broken and should be replaced with `EntityCatalogGraphCard`, which can be imported from package `@backstage/plugin-catalog-graph`.
+- 7657eeae22: Removed deprecated `Router` and `EntityPageLayout` exports.
+  `Router` is replaced by plugin extensions and `EntityPageLayout` is replaced by `CatalogEntityPage`.
+- 0a033351be: **BREAKING**:
+
+  - The `CatalogResultListItem` `result` prop is now of the more narrow and correct type `IndexableDocument`, rather than `any`.
+  - The individual table column factories (e.g. `createNameColumn`) are now no longer available directly, but only through `CatalogTable.columns`.
+
+### Patch Changes
+
+- 1ed305728b: Bump `node-fetch` to version 2.6.7 and `cross-fetch` to version 3.1.5
+- c77c5c7eb6: Added `backstage.role` to `package.json`
+- 538ca90790: Use updated type names from `@backstage/catalog-client`
+- 0d03e42a89: Replaced use of deprecated `compareEntityToRef` utility.
+- 244d24ebc4: Import `Location` from the `@backstage/catalog-client` package.
+- deaf6065db: Adapt to the new `CatalogApi.getLocationByRef`
+- 27eccab216: Replaces use of deprecated catalog-model constants.
+- 7aeb491394: Replace use of deprecated `ENTITY_DEFAULT_NAMESPACE` constant with `DEFAULT_NAMESPACE`.
+- Updated dependencies
+  - @backstage/catalog-client@0.7.0
+  - @backstage/core-components@0.8.9
+  - @backstage/core-plugin-api@0.6.1
+  - @backstage/errors@0.2.1
+  - @backstage/integration-react@0.1.22
+  - @backstage/plugin-catalog-react@0.6.15
+  - @backstage/catalog-model@0.10.0
+  - @backstage/search-common@0.2.3
+  - @backstage/theme@0.2.15
+  - @backstage/plugin-catalog-common@0.1.3
+
+## 0.7.12
+
+### Patch Changes
+
+- f8633307c4: Added an "inspect" entry in the entity three-dots menu, for lower level catalog
+  insights and debugging.
+- 9033775d39: Deprecated the `EntityPageLayout`; please use the new extension based `CatalogEntityPage` instead
+- Updated dependencies
+  - @backstage/catalog-client@0.6.0
+  - @backstage/core-components@0.8.8
+  - @backstage/plugin-catalog-react@0.6.14
+  - @backstage/integration-react@0.1.21
+
+## 0.7.12-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.8-next.0
+  - @backstage/plugin-catalog-react@0.6.14-next.0
+  - @backstage/integration-react@0.1.21-next.0
+
+## 0.7.11
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.7
+  - @backstage/plugin-catalog-react@0.6.13
+  - @backstage/plugin-catalog-common@0.1.2
+  - @backstage/integration-react@0.1.20
+
+## 0.7.11-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.7-next.1
+  - @backstage/plugin-catalog-react@0.6.13-next.1
+  - @backstage/plugin-catalog-common@0.1.2-next.0
+
+## 0.7.11-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.7-next.0
+  - @backstage/integration-react@0.1.20-next.0
+  - @backstage/plugin-catalog-react@0.6.13-next.0
+
+## 0.7.10
+
+### Patch Changes
+
+- aac316279f: Deprecated `EntitySystemDiagramCard`
+  `EntitySystemDiagramCard` is replaced by `EntityCatalogGraphCard` which is imported from `@backstage/plugin-catalog-graph`. This component will be removed in an upcoming release
+- Updated dependencies
+  - @backstage/core-components@0.8.6
+
+## 0.7.9
+
+### Patch Changes
+
+- 7ba416be78: **@backstage/plugin-user-settings:** Hide Header on mobile screens to improve the UI & give more space to the content. Furthermore, the "Pin Sidebar" setting is removed on mobile screens, as the mobile sidebar is always pinned to the bottom.
+
+  **Other plugins:** Smaller style adjustments across plugins to improve the UI on mobile devices.
+
+- 51fbedc445: Migrated usage of deprecated `IdentityApi` methods.
+- c54c0d9d10: Add permission check to unregister entity button
+
+  If the permissions framework is disabled, this change should have no effect. If the permission framework is enabled, the unregister entity button will be disabled for those who do not have access to the `catalogEntityDeletePermission` as specified in your permission policy.
+
+- 61ded2a863: Export the `RelatedEntitiesCard` component which is helpful in case you want to model custom relations between entities
+- 2b27e49eb1: Internal update to match status field changes in `@backstage/catalog-model`.
+- Updated dependencies
+  - @backstage/core-components@0.8.5
+  - @backstage/core-plugin-api@0.6.0
+  - @backstage/plugin-catalog-react@0.6.12
+  - @backstage/plugin-catalog-common@0.1.1
+  - @backstage/catalog-model@0.9.10
+  - @backstage/catalog-client@0.5.5
+  - @backstage/integration-react@0.1.19
+
+## 0.7.9-next.0
+
+### Patch Changes
+
+- 7ba416be78: **@backstage/plugin-user-settings:** Hide Header on mobile screens to improve the UI & give more space to the content. Furthermore, the "Pin Sidebar" setting is removed on mobile screens, as the mobile sidebar is always pinned to the bottom.
+
+  **Other plugins:** Smaller style adjustments across plugins to improve the UI on mobile devices.
+
+- 51fbedc445: Migrated usage of deprecated `IdentityApi` methods.
+- 2b27e49eb1: Internal update to match status field changes in `@backstage/catalog-model`.
+- Updated dependencies
+  - @backstage/core-components@0.8.5-next.0
+  - @backstage/core-plugin-api@0.6.0-next.0
+  - @backstage/plugin-catalog-react@0.6.12-next.0
+  - @backstage/catalog-model@0.9.10-next.0
+  - @backstage/integration-react@0.1.19-next.0
+  - @backstage/catalog-client@0.5.5-next.0
+
+## 0.7.8
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.4
+  - @backstage/core-plugin-api@0.5.0
+  - @backstage/plugin-catalog-react@0.6.11
+  - @backstage/errors@0.2.0
+  - @backstage/catalog-client@0.5.4
+  - @backstage/catalog-model@0.9.9
+  - @backstage/integration-react@0.1.18
+
+## 0.7.7
+
+### Patch Changes
+
+- 4ce51ab0f1: Internal refactor of the `react-use` imports to use `react-use/lib/*` instead.
+- 11b81683a9: Support customizing index page layouts via outlets
+- e195390974: Allow entities from `file` locations to be manually refreshed through the UI
+- Updated dependencies
+  - @backstage/core-plugin-api@0.4.1
+  - @backstage/plugin-catalog-react@0.6.10
+  - @backstage/core-components@0.8.3
+
+## 0.7.6
+
+### Patch Changes
+
+- 7d4b4e937c: Uptake changes to the GitHub Credentials Provider interface.
+- Updated dependencies
+  - @backstage/plugin-catalog-react@0.6.9
+  - @backstage/integration-react@0.1.17
+
+## 0.7.5
+
+### Patch Changes
+
+- 3fa31ec84a: Deprecated the `CatalogClientWrapper` class.
+
+  The default implementation of `catalogApiRef` that this plugin exposes, is now powered by the new `fetchApiRef`. The default implementation of _that_ API, in turn, has the ability to inject the user's Backstage token in requests in a similar manner to what the deprecated `CatalogClientWrapper` used to do. The latter has therefore been taken out of the default catalog API implementation.
+
+  If you use a custom `fetchApiRef` implementation that does NOT issue tokens, or use a custom `catalogApiRef` implementation which does NOT use the default `fetchApiRef`, you can still for some time wrap your catalog API in this class to get back the old behavior:
+
+  ```ts
+  // Add this to your packages/app/src/plugins.ts if you want to get back the old
+  // catalog client behavior:
+  createApiFactory({
+    api: catalogApiRef,
+    deps: { discoveryApi: discoveryApiRef, identityApi: identityApiRef },
+    factory: ({ discoveryApi, identityApi }) =>
+      new CatalogClientWrapper({
+        client: new CatalogClient({ discoveryApi }),
+        identityApi,
+      }),
+  }),
+  ```
+
+  But do consider migrating to making use of the `fetchApiRef` as soon as convenient, since the wrapper class will be removed in a future release.
+
+- 7a4bd2ceac: Prefer using `Link` from `@backstage/core-components` rather than material-UI.
+- Updated dependencies
+  - @backstage/core-plugin-api@0.4.0
+  - @backstage/plugin-catalog-react@0.6.8
+  - @backstage/core-components@0.8.2
+  - @backstage/catalog-client@0.5.3
+  - @backstage/integration-react@0.1.16
+
 ## 0.7.4
 
 ### Patch Changes

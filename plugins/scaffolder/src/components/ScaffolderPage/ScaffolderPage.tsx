@@ -23,7 +23,8 @@ import {
   Page,
   SupportButton,
 } from '@backstage/core-components';
-import { TemplateEntityV1beta2, Entity } from '@backstage/catalog-model';
+import { Entity } from '@backstage/catalog-model';
+import { TemplateEntityV1beta3 } from '@backstage/plugin-scaffolder-common';
 import { useRouteRef } from '@backstage/core-plugin-api';
 import {
   EntityKindPicker,
@@ -37,6 +38,8 @@ import React, { ComponentType } from 'react';
 import { registerComponentRouteRef } from '../../routes';
 import { TemplateList } from '../TemplateList';
 import { TemplateTypePicker } from '../TemplateTypePicker';
+import { catalogEntityCreatePermission } from '@backstage/plugin-catalog-common';
+import { usePermission } from '@backstage/plugin-permission-react';
 
 const useStyles = makeStyles(theme => ({
   contentWrapper: {
@@ -49,10 +52,11 @@ const useStyles = makeStyles(theme => ({
 
 export type ScaffolderPageProps = {
   TemplateCardComponent?:
-    | ComponentType<{ template: TemplateEntityV1beta2 }>
+    | ComponentType<{ template: TemplateEntityV1beta3 }>
     | undefined;
   groups?: Array<{
-    title?: string;
+    title?: React.ReactNode;
+    /** @deprcated use title instead as it accepts a string and react component */
     titleComponent?: React.ReactNode;
     filter: (entity: Entity) => boolean;
   }>;
@@ -72,6 +76,8 @@ export const ScaffolderPageContents = ({
     },
   };
 
+  const { allowed } = usePermission(catalogEntityCreatePermission);
+
   return (
     <Page themeId="home">
       <Header
@@ -85,10 +91,12 @@ export const ScaffolderPageContents = ({
       />
       <Content>
         <ContentHeader title="Available Templates">
-          <CreateButton
-            title="Register Existing Component"
-            to={registerComponentLink && registerComponentLink()}
-          />
+          {allowed && (
+            <CreateButton
+              title="Register Existing Component"
+              to={registerComponentLink && registerComponentLink()}
+            />
+          )}
           <SupportButton>
             Create new software components using standard templates. Different
             templates create different kinds of components (services, websites,
@@ -109,13 +117,15 @@ export const ScaffolderPageContents = ({
           </div>
           <div>
             {groups &&
-              groups.map(group => (
+              groups.map((group, index) => (
                 <TemplateList
+                  key={index}
                   TemplateCardComponent={TemplateCardComponent}
                   group={group}
                 />
               ))}
             <TemplateList
+              key="other"
               TemplateCardComponent={TemplateCardComponent}
               group={otherTemplatesGroup}
             />

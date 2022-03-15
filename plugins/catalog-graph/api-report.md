@@ -6,8 +6,8 @@
 /// <reference types="react" />
 
 import { BackstagePlugin } from '@backstage/core-plugin-api';
+import { CompoundEntityRef } from '@backstage/catalog-model';
 import { DependencyGraphTypes } from '@backstage/core-components';
-import { EntityName } from '@backstage/catalog-model';
 import { ExternalRouteRef } from '@backstage/core-plugin-api';
 import { InfoCardVariants } from '@backstage/core-components';
 import { MouseEvent as MouseEvent_2 } from 'react';
@@ -49,7 +49,7 @@ export const catalogGraphPlugin: BackstagePlugin<
         kind: string;
         namespace: string;
       },
-      false
+      true
     >;
   }
 >;
@@ -95,8 +95,6 @@ export const EntityCatalogGraphCard: ({
 // @public
 export type EntityEdge = DependencyGraphTypes.DependencyEdge<EntityEdgeData>;
 
-// Warning: (ae-missing-release-tag) "EntityEdgeData" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export type EntityEdgeData = {
   relations: string[];
@@ -106,8 +104,6 @@ export type EntityEdgeData = {
 // @public
 export type EntityNode = DependencyGraphTypes.DependencyNode<EntityNodeData>;
 
-// Warning: (ae-missing-release-tag) "EntityNodeData" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export type EntityNodeData = {
   name: string;
@@ -133,7 +129,7 @@ export const EntityRelationsGraph: ({
   className,
   zoom,
 }: {
-  rootEntityNames: EntityName | EntityName[];
+  rootEntityNames: CompoundEntityRef | CompoundEntityRef[];
   maxDepth?: number | undefined;
   unidirectional?: boolean | undefined;
   mergeRelations?: boolean | undefined;

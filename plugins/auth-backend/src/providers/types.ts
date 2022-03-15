@@ -14,15 +14,45 @@
  * limitations under the License.
  */
 
-import { PluginEndpointDiscovery } from '@backstage/backend-common';
+import {
+  PluginEndpointDiscovery,
+  TokenManager,
+} from '@backstage/backend-common';
 import { CatalogApi } from '@backstage/catalog-client';
-import { Entity } from '@backstage/catalog-model';
 import { Config } from '@backstage/config';
+import {
+  BackstageIdentityResponse,
+  BackstageSignInResult,
+} from '@backstage/plugin-auth-node';
 import express from 'express';
 import { Logger } from 'winston';
 import { TokenIssuer } from '../identity/types';
 import { OAuthStartRequest } from '../lib/oauth/types';
 import { CatalogIdentityClient } from '../lib/catalog';
+
+/**
+ * The context that is used for auth processing.
+ *
+ * @public
+ */
+export type AuthResolverContext = {
+  tokenIssuer: TokenIssuer;
+  catalogIdentityClient: CatalogIdentityClient;
+  logger: Logger;
+};
+
+/**
+ * The callback used to resolve the cookie configuration for auth providers that use cookies.
+ * @public
+ */
+export type CookieConfigurer = (ctx: {
+  /** ID of the auth provider that this configuration applies to */
+  providerId: string;
+  /** The externally reachable base URL of the auth-backend plugin */
+  baseUrl: string;
+  /** The configured callback URL of the auth provider */
+  callbackUrl: string;
+}) => { domain: string; path: string; secure: boolean };
 
 export type AuthProviderConfig = {
   /**
@@ -40,6 +70,11 @@ export type AuthProviderConfig = {
    * A function that is called to check whether an origin is allowed to receive the authentication result.
    */
   isOriginAllowed: (origin: string) => boolean;
+
+  /**
+   * The function used to resolve cookie configuration based on the auth provider options.
+   */
+  cookieConfigurer?: CookieConfigurer;
 };
 
 export type RedirectInfo = {
@@ -59,10 +94,10 @@ export type RedirectInfo = {
  *
  * The routes in the auth backend API are tied to these methods like below
  *
- * /auth/[provider]/start -> start
- * /auth/[provider]/handler/frame -> frameHandler
- * /auth/[provider]/refresh -> refresh
- * /auth/[provider]/logout -> logout
+ * `/auth/[provider]/start -> start`
+ * `/auth/[provider]/handler/frame -> frameHandler`
+ * `/auth/[provider]/refresh -> refresh`
+ * `/auth/[provider]/logout -> logout`
  */
 export interface AuthProviderRouteHandlers {
   /**
@@ -73,9 +108,6 @@ export interface AuthProviderRouteHandlers {
    * Response
    * - redirect to the auth provider for the user to sign in or consent.
    * - sets a nonce cookie and also pass the nonce as 'state' query parameter in the redirect request
-   *
-   * @param {express.Request} req
-   * @param {express.Response} res
    */
   start(req: express.Request, res: express.Response): Promise<void>;
 
@@ -88,9 +120,6 @@ export interface AuthProviderRouteHandlers {
    * Response
    * - postMessage to the window with a payload that contains accessToken, expiryInSeconds?, idToken? and scope.
    * - sets a refresh token cookie if the auth provider supports refresh tokens
-   *
-   * @param {express.Request} req
-   * @param {express.Response} res
    */
   frameHandler(req: express.Request, res: express.Response): Promise<void>;
 
@@ -102,9 +131,6 @@ export interface AuthProviderRouteHandlers {
    * - to contain a refresh token cookie and scope (Optional) query parameter.
    * Response
    * - payload with accessToken, expiryInSeconds?, idToken?, scope and user profile information.
-   *
-   * @param {express.Request} req
-   * @param {express.Response} res
    */
   refresh?(req: express.Request, res: express.Response): Promise<void>;
 
@@ -113,9 +139,6 @@ export interface AuthProviderRouteHandlers {
    *
    * Response
    * - removes the refresh token cookie
-   *
-   * @param {express.Request} req
-   * @param {express.Response} res
    */
   logout?(req: express.Request, res: express.Response): Promise<void>;
 }
@@ -125,6 +148,7 @@ export type AuthProviderFactoryOptions = {
   globalConfig: AuthProviderConfig;
   config: Config;
   logger: Logger;
+  tokenManager: TokenManager;
   tokenIssuer: TokenIssuer;
   discovery: PluginEndpointDiscovery;
   catalogApi: CatalogApi;
@@ -141,86 +165,11 @@ export type AuthResponse<ProviderInfo> = {
 };
 
 /**
- * User identity information within Backstage.
- *
- * @public
- */
-export type BackstageUserIdentity = {
-  /**
-   * The type of identity that this structure represents. In the frontend app
-   * this will currently always be 'user'.
-   */
-  type: 'user';
-
-  /**
-   * The entityRef of the user in the catalog.
-   * For example User:default/sandra
-   */
-  userEntityRef: string;
-
-  /**
-   * The user and group entities that the user claims ownership through
-   */
-  ownershipEntityRefs: string[];
-};
-
-/**
- * A representation of a successful Backstage sign-in.
- *
- * Compared to the {@link BackstageIdentityResponse} this type omits
- * the decoded identity information embedded in the token.
- *
- * @public
- */
-export interface BackstageSignInResult {
-  /**
-   * An opaque ID that uniquely identifies the user within Backstage.
-   *
-   * This is typically the same as the user entity `metadata.name`.
-   *
-   * @deprecated Use the `identity` field instead
-   */
-  id: string;
-
-  /**
-   * The entity that the user is represented by within Backstage.
-   *
-   * This entity may or may not exist within the Catalog, and it can be used
-   * to read and store additional metadata about the user.
-   *
-   * @deprecated Use the `identity` field instead.
-   */
-  entity?: Entity;
-
-  /**
-   * The token used to authenticate the user within Backstage.
-   */
-  token: string;
-}
-
-/**
- * The old exported symbol for {@link BackstageSignInResult}.
- * @public
- * @deprecated Use the `BackstageSignInResult` type instead.
- */
-export type BackstageIdentity = BackstageSignInResult;
-
-/**
- * Response object containing the {@link BackstageUserIdentity} and the token from the authentication provider.
- * @public
- */
-export interface BackstageIdentityResponse extends BackstageSignInResult {
-  /**
-   * A plaintext description of the identity that is encapsulated within the token.
-   */
-  identity: BackstageUserIdentity;
-}
-
-/**
  * Used to display login information to user, i.e. sidebar popup.
  *
  * It is also temporarily used as the profile of the signed-in user's Backstage
- * identity, but we want to replace that with data from identity and/org catalog service
+ * identity, but we want to replace that with data from identity and/org catalog
+ * service
  *
  * @public
  */
@@ -241,53 +190,59 @@ export type ProfileInfo = {
 };
 
 /**
- * type of sign in information context, includes the profile information and authentication result which contains auth. related information
+ * Type of sign in information context. Includes the profile information and
+ * authentication result which contains auth related information.
+ *
  * @public
  */
-export type SignInInfo<AuthResult> = {
+export type SignInInfo<TAuthResult> = {
   /**
    * The simple profile passed down for use in the frontend.
    */
   profile: ProfileInfo;
 
   /**
-   * The authentication result that was received from the authentication provider.
+   * The authentication result that was received from the authentication
+   * provider.
    */
-  result: AuthResult;
+  result: TAuthResult;
 };
 
 /**
- * Sign in resolver type describes the function which handles the result of a successful authentication
- * and it must return a valid {@link BackstageSignInResult}
+ * Describes the function which handles the result of a successful
+ * authentication. Must return a valid {@link @backstage/plugin-auth-node#BackstageSignInResult}.
+ *
  * @public
  */
-export type SignInResolver<AuthResult> = (
-  info: SignInInfo<AuthResult>,
-  context: {
-    tokenIssuer: TokenIssuer;
-    catalogIdentityClient: CatalogIdentityClient;
-    logger: Logger;
-  },
+export type SignInResolver<TAuthResult> = (
+  info: SignInInfo<TAuthResult>,
+  context: AuthResolverContext,
 ) => Promise<BackstageSignInResult>;
 
 /**
- * The return type of authentication handler which must contain a valid profile information
+ * The return type of an authentication handler. Must contain valid profile
+ * information.
+ *
  * @public
  */
 export type AuthHandlerResult = { profile: ProfileInfo };
 
 /**
- * The AuthHandler function is called every time the user authenticates using the provider.
+ * The AuthHandler function is called every time the user authenticates using
+ * the provider.
  *
- * The handler should return a profile that represents the session for the user in the frontend.
+ * The handler should return a profile that represents the session for the user
+ * in the frontend.
  *
- * Throwing an error in the function will cause the authentication to fail, making it
- * possible to use this function as a way to limit access to a certain group of users.
+ * Throwing an error in the function will cause the authentication to fail,
+ * making it possible to use this function as a way to limit access to a certain
+ * group of users.
  *
  * @public
  */
-export type AuthHandler<AuthResult> = (
-  input: AuthResult,
+export type AuthHandler<TAuthResult> = (
+  input: TAuthResult,
+  context: AuthResolverContext,
 ) => Promise<AuthHandlerResult>;
 
 export type StateEncoder = (

@@ -20,6 +20,7 @@ import {
   CatalogApi,
   catalogApiRef,
   EntityProvider,
+  entityRouteRef,
 } from '@backstage/plugin-catalog-react';
 import {
   MockAnalyticsApi,
@@ -29,7 +30,7 @@ import {
 } from '@backstage/test-utils';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { catalogEntityRouteRef, catalogGraphRouteRef } from '../../routes';
+import { catalogGraphRouteRef } from '../../routes';
 import { CatalogGraphCard } from './CatalogGraphCard';
 
 describe('<CatalogGraphCard/>', () => {
@@ -56,15 +57,15 @@ describe('<CatalogGraphCard/>', () => {
     };
     catalog = {
       getEntities: jest.fn(),
-      getEntityByName: jest.fn(async _ => ({ ...entity, relations: [] })),
+      getEntityByRef: jest.fn(async _ => ({ ...entity, relations: [] })),
       removeEntityByUid: jest.fn(),
       getLocationById: jest.fn(),
-      getOriginLocationByEntity: jest.fn(),
-      getLocationByEntity: jest.fn(),
+      getLocationByRef: jest.fn(),
       addLocation: jest.fn(),
       removeLocationById: jest.fn(),
       refreshEntity: jest.fn(),
       getEntityAncestors: jest.fn(),
+      getEntityFacets: jest.fn(),
     };
     apis = TestApiRegistry.from([catalogApiRef, catalog]);
 
@@ -80,14 +81,14 @@ describe('<CatalogGraphCard/>', () => {
   test('renders without exploding', async () => {
     const { findByText, findAllByTestId } = await renderInTestApp(wrapper, {
       mountedRoutes: {
-        '/entity/{kind}/{namespace}/{name}': catalogEntityRouteRef,
+        '/entity/{kind}/{namespace}/{name}': entityRouteRef,
         '/catalog-graph': catalogGraphRouteRef,
       },
     });
 
     expect(await findByText('b:d/c')).toBeInTheDocument();
     expect(await findAllByTestId('node')).toHaveLength(1);
-    expect(catalog.getEntityByName).toBeCalledTimes(1);
+    expect(catalog.getEntityByRef).toBeCalledTimes(1);
   });
 
   test('renders with custom title', async () => {
@@ -99,7 +100,7 @@ describe('<CatalogGraphCard/>', () => {
       </ApiProvider>,
       {
         mountedRoutes: {
-          '/entity/{kind}/{namespace}/{name}': catalogEntityRouteRef,
+          '/entity/{kind}/{namespace}/{name}': entityRouteRef,
           '/catalog-graph': catalogGraphRouteRef,
         },
       },
@@ -111,7 +112,7 @@ describe('<CatalogGraphCard/>', () => {
   test('renders link to standalone viewer', async () => {
     const { findByText, getByText } = await renderInTestApp(wrapper, {
       mountedRoutes: {
-        '/entity/{kind}/{namespace}/{name}': catalogEntityRouteRef,
+        '/entity/{kind}/{namespace}/{name}': entityRouteRef,
         '/catalog-graph': catalogGraphRouteRef,
       },
     });
@@ -133,7 +134,7 @@ describe('<CatalogGraphCard/>', () => {
       </TestApiProvider>,
       {
         mountedRoutes: {
-          '/entity/{kind}/{namespace}/{name}': catalogEntityRouteRef,
+          '/entity/{kind}/{namespace}/{name}': entityRouteRef,
           '/catalog-graph': catalogGraphRouteRef,
         },
       },

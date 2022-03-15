@@ -15,12 +15,12 @@
  */
 
 import { TaskContext, TaskBroker, WorkflowRunner } from './types';
-import { HandlebarsWorkflowRunner } from './HandlebarsWorkflowRunner';
 import { NunjucksWorkflowRunner } from './NunjucksWorkflowRunner';
 import { Logger } from 'winston';
 import { TemplateActionRegistry } from '../actions';
 import { ScmIntegrations } from '@backstage/integration';
 import { assertError } from '@backstage/errors';
+import { TemplateFilter } from '../../lib/templating/SecureTemplater';
 
 /**
  * TaskWorkerOptions
@@ -30,7 +30,6 @@ import { assertError } from '@backstage/errors';
 export type TaskWorkerOptions = {
   taskBroker: TaskBroker;
   runners: {
-    legacyWorkflowRunner: HandlebarsWorkflowRunner;
     workflowRunner: WorkflowRunner;
   };
 };
@@ -46,6 +45,7 @@ export type CreateWorkerOptions = {
   integrations: ScmIntegrations;
   workingDirectory: string;
   logger: Logger;
+  additionalTemplateFilters?: Record<string, TemplateFilter>;
 };
 
 /**
@@ -63,25 +63,20 @@ export class TaskWorker {
       actionRegistry,
       integrations,
       workingDirectory,
+      additionalTemplateFilters,
     } = options;
-
-    const legacyWorkflowRunner = new HandlebarsWorkflowRunner({
-      logger,
-      actionRegistry,
-      integrations,
-      workingDirectory,
-    });
 
     const workflowRunner = new NunjucksWorkflowRunner({
       actionRegistry,
       integrations,
       logger,
       workingDirectory,
+      additionalTemplateFilters,
     });
 
     return new TaskWorker({
       taskBroker: taskBroker,
-      runners: { legacyWorkflowRunner, workflowRunner },
+      runners: { workflowRunner },
     });
   }
 
@@ -96,10 +91,15 @@ export class TaskWorker {
 
   async runOneTask(task: TaskContext) {
     try {
-      const { output } =
-        task.spec.apiVersion === 'scaffolder.backstage.io/v1beta3'
-          ? await this.options.runners.workflowRunner.execute(task)
-          : await this.options.runners.legacyWorkflowRunner.execute(task);
+      if (task.spec.apiVersion !== 'scaffolder.backstage.io/v1beta3') {
+        throw new Error(
+          `Unsupported Template apiVersion ${task.spec.apiVersion}`,
+        );
+      }
+
+      const { output } = await this.options.runners.workflowRunner.execute(
+        task,
+      );
 
       await task.complete('completed', { output });
     } catch (error) {

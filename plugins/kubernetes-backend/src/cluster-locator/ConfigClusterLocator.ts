@@ -47,6 +47,9 @@ export class ConfigClusterLocator implements KubernetesClustersSupplier {
         if (dashboardApp) {
           clusterDetails.dashboardApp = dashboardApp;
         }
+        if (c.has('dashboardParameters')) {
+          clusterDetails.dashboardParameters = c.get('dashboardParameters');
+        }
 
         switch (authProvider) {
           case 'google': {
@@ -59,6 +62,9 @@ export class ConfigClusterLocator implements KubernetesClustersSupplier {
             return { assumeRole, externalId, ...clusterDetails };
           }
           case 'serviceAccount': {
+            return clusterDetails;
+          }
+          case 'googleServiceAccount': {
             return clusterDetails;
           }
           default: {

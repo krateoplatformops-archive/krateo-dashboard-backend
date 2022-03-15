@@ -1,5 +1,398 @@
 # @backstage/plugin-auth-backend
 
+## 0.12.1
+
+### Patch Changes
+
+- ab7cd7d70e: Do some groundwork for supporting the `better-sqlite3` driver, to maybe eventually replace `@vscode/sqlite3` (#9912)
+- e0a69ba49f: build(deps): bump `fs-extra` from 9.1.0 to 10.0.1
+- bf95bb806c: Remove usages of now-removed `CatalogApi.getEntityByName`
+- 3c2bc73901: Use `setupRequestMockHandlers` from `@backstage/backend-test-utils`
+- Updated dependencies
+  - @backstage/backend-common@0.13.0
+  - @backstage/catalog-model@0.13.0
+  - @backstage/catalog-client@0.9.0
+  - @backstage/plugin-auth-node@0.1.5
+
+## 0.12.1-next.0
+
+### Patch Changes
+
+- ab7cd7d70e: Do some groundwork for supporting the `better-sqlite3` driver, to maybe eventually replace `@vscode/sqlite3` (#9912)
+- e0a69ba49f: build(deps): bump `fs-extra` from 9.1.0 to 10.0.1
+- bf95bb806c: Remove usages of now-removed `CatalogApi.getEntityByName`
+- 3c2bc73901: Use `setupRequestMockHandlers` from `@backstage/backend-test-utils`
+- Updated dependencies
+  - @backstage/backend-common@0.13.0-next.0
+  - @backstage/catalog-model@0.13.0-next.0
+  - @backstage/catalog-client@0.9.0-next.0
+  - @backstage/plugin-auth-node@0.1.5-next.0
+
+## 0.12.0
+
+### Minor Changes
+
+- 0c8ba31d72: **BREAKING**: The `TokenFactory.issueToken` used by custom sign-in resolvers now ensures that the sub claim given is a full entity reference of the format `<kind>:<namespace>/<name>`. Any existing custom sign-in resolver functions that do not supply a full entity reference must be updated.
+
+### Patch Changes
+
+- 899f196af5: Use `getEntityByRef` instead of `getEntityByName` in the catalog client
+- 36aa63022b: Use `CompoundEntityRef` instead of `EntityName`, and `getCompoundEntityRef` instead of `getEntityName`, from `@backstage/catalog-model`.
+- Updated dependencies
+  - @backstage/catalog-model@0.12.0
+  - @backstage/catalog-client@0.8.0
+  - @backstage/backend-common@0.12.0
+  - @backstage/plugin-auth-node@0.1.4
+
+## 0.11.0
+
+### Minor Changes
+
+- 3884bf0348: **BREAKING**: The default sign-in resolvers for all providers, if you choose to
+  use them, now emit the token `sub` and `ent` claims on the standard,
+  all-lowercase form, instead of the mixed-case form. The mixed-case form causes
+  problems for implementations that naively do string comparisons on refs. The end
+  result is that you may for example see your Backstage token `sub` claim now
+  become `'user:default/my-id'` instead of `'user:default/My-ID'`.
+
+  On a related note, specifically the SAML provider now correctly issues both
+  `sub` and `ent` claims, and on the full entity ref form instead of the short
+  form with only the ID.
+
+  **NOTE**: For a long time, it has been strongly recommended that you provide
+  your own sign-in resolver instead of using the builtin ones, and that will
+  become mandatory in the future.
+
+### Patch Changes
+
+- d64b8d3678: chore(deps): bump `minimatch` from 3.0.4 to 5.0.0
+- 6e1cbc12a6: Updated according to the new `getEntityFacets` catalog API method
+- 919cf2f836: Minor updates to match the new `targetRef` field of relations, and to stop consuming the `target` field
+- Updated dependencies
+  - @backstage/backend-common@0.11.0
+  - @backstage/catalog-model@0.11.0
+  - @backstage/catalog-client@0.7.2
+  - @backstage/plugin-auth-node@0.1.3
+
+## 0.10.2
+
+### Patch Changes
+
+- Fix for the previous release with missing type declarations.
+- Updated dependencies
+  - @backstage/backend-common@0.10.9
+  - @backstage/catalog-client@0.7.1
+  - @backstage/catalog-model@0.10.1
+  - @backstage/config@0.1.15
+  - @backstage/errors@0.2.2
+  - @backstage/types@0.1.3
+  - @backstage/plugin-auth-node@0.1.2
+
+## 0.10.1
+
+### Patch Changes
+
+- 1ed305728b: Bump `node-fetch` to version 2.6.7 and `cross-fetch` to version 3.1.5
+- c77c5c7eb6: Added `backstage.role` to `package.json`
+- a31559d1f5: Bump `passport-oauth2` to version 1.6.1
+- deaf6065db: Adapt to the new `CatalogApi.getLocationByRef`
+- 1433045c08: Removed unused `helmet` dependency.
+- 7aeb491394: Replace use of deprecated `ENTITY_DEFAULT_NAMESPACE` constant with `DEFAULT_NAMESPACE`.
+- Updated dependencies
+  - @backstage/backend-common@0.10.8
+  - @backstage/catalog-client@0.7.0
+  - @backstage/errors@0.2.1
+  - @backstage/plugin-auth-node@0.1.1
+  - @backstage/catalog-model@0.10.0
+  - @backstage/config@0.1.14
+  - @backstage/types@0.1.2
+
+## 0.10.0
+
+### Minor Changes
+
+- 08fcda13ef: The `callbackUrl` option of `OAuthAdapter` is now required.
+- 6bc86fcf2d: The following breaking changes were made, which may imply specifically needing
+  to make small adjustments in your custom auth providers.
+
+  - **BREAKING**: Moved `IdentityClient`, `BackstageSignInResult`,
+    `BackstageIdentityResponse`, and `BackstageUserIdentity` to
+    `@backstage/plugin-auth-node`.
+  - **BREAKING**: Removed deprecated type `BackstageIdentity`, please use
+    `BackstageSignInResult` from `@backstage/plugin-auth-node` instead.
+
+  While moving over, `IdentityClient` was also changed in the following ways:
+
+  - **BREAKING**: Made `IdentityClient.listPublicKeys` private. It was only used
+    in tests, and should not be part of the API surface of that class.
+  - **BREAKING**: Removed the static `IdentityClient.getBearerToken`. It is now
+    replaced by `getBearerTokenFromAuthorizationHeader` from
+    `@backstage/plugin-auth-node`.
+  - **BREAKING**: Removed the constructor. Please use the `IdentityClient.create`
+    static method instead.
+
+  Since the `IdentityClient` interface is marked as experimental, this is a
+  breaking change without a deprecation period.
+
+  In your auth providers, you may need to update your imports and usages as
+  follows (example code; yours may be slightly different):
+
+  ````diff
+  -import { IdentityClient } from '@backstage/plugin-auth-backend';
+  +import {
+  +  IdentityClient,
+  +  getBearerTokenFromAuthorizationHeader
+  +} from '@backstage/plugin-auth-node';
+
+     // ...
+
+  -  const identity = new IdentityClient({
+  +  const identity = IdentityClient.create({
+       discovery,
+       issuer: await discovery.getExternalBaseUrl('auth'),
+     });```
+
+     // ...
+
+     const token =
+  -     IdentityClient.getBearerToken(req.headers.authorization) ||
+  +     getBearerTokenFromAuthorizationHeader(req.headers.authorization) ||
+        req.cookies['token'];
+  ````
+
+### Patch Changes
+
+- 2441d1cf59: chore(deps): bump `knex` from 0.95.6 to 1.0.2
+
+  This also replaces `sqlite3` with `@vscode/sqlite3` 5.0.7
+
+- 3396bc5973: Enabled refresh for the Atlassian provider.
+- 08fcda13ef: Added a new `cookieConfigurer` option to `AuthProviderConfig` that makes it possible to override the default logic for configuring OAuth provider cookies.
+- Updated dependencies
+  - @backstage/catalog-client@0.6.0
+  - @backstage/backend-common@0.10.7
+  - @backstage/plugin-auth-node@0.1.0
+
+## 0.10.0-next.0
+
+### Minor Changes
+
+- 08fcda13ef: The `callbackUrl` option of `OAuthAdapter` is now required.
+
+### Patch Changes
+
+- 2441d1cf59: chore(deps): bump `knex` from 0.95.6 to 1.0.2
+
+  This also replaces `sqlite3` with `@vscode/sqlite3` 5.0.7
+
+- 3396bc5973: Enabled refresh for the Atlassian provider.
+- 08fcda13ef: Added a new `cookieConfigurer` option to `AuthProviderConfig` that makes it possible to override the default logic for configuring OAuth provider cookies.
+- Updated dependencies
+  - @backstage/backend-common@0.10.7-next.0
+
+## 0.9.0
+
+### Minor Changes
+
+- cef64b1561: **BREAKING** Added `tokenManager` as a required property for the auth-backend `createRouter` function. This dependency is used to issue server tokens that are used by the `CatalogIdentityClient` when looking up users and their group membership during authentication.
+
+  These changes are **required** to `packages/backend/src/plugins/auth.ts`:
+
+  ```diff
+  export default async function createPlugin({
+    logger,
+    database,
+    config,
+    discovery,
+  + tokenManager,
+  }: PluginEnvironment): Promise<Router> {
+    return await createRouter({
+      logger,
+      config,
+      database,
+      discovery,
+  +   tokenManager,
+    });
+  }
+  ```
+
+  **BREAKING** The `CatalogIdentityClient` constructor now expects a `TokenManager` instead of a `TokenIssuer`. The `TokenManager` interface is used to generate a server token when [resolving a user's identity and membership through the catalog](https://backstage.io/docs/auth/identity-resolver). Using server tokens for these requests allows the auth-backend to bypass authorization checks when permissions are enabled for Backstage. This change will break apps that rely on the user tokens that were previously used by the client. Refer to the ["Backend-to-backend Authentication" tutorial](https://backstage.io/docs/tutorials/backend-to-backend-auth) for more information on server token usage.
+
+### Patch Changes
+
+- 9d75a939b6: Fixed a bug where providers that tracked the granted scopes through a cookie would not take failed authentication attempts into account.
+- 28a5f9d0b1: chore(deps): bump `passport` from 0.4.1 to 0.5.2
+- 5d09bdd1de: Added custom `callbackUrl` support for multiple providers. `v0.8.0` introduced this change for `github`, and now we're adding the same capability to the following providers: `atlassian, auth0, bitbucket, gitlab, google, microsoft, oauth2, oidc, okta, onelogin`.
+- 648606b3ac: Added support for storing static GitHub access tokens in cookies and using them to refresh the Backstage session.
+- Updated dependencies
+  - @backstage/backend-common@0.10.6
+
+## 0.9.0-next.1
+
+### Patch Changes
+
+- 9d75a939b6: Fixed a bug where providers that tracked the granted scopes through a cookie would not take failed authentication attempts into account.
+- 648606b3ac: Added support for storing static GitHub access tokens in cookies and using them to refresh the Backstage session.
+- Updated dependencies
+  - @backstage/backend-common@0.10.6-next.0
+
+## 0.9.0-next.0
+
+### Minor Changes
+
+- cef64b1561: **BREAKING** Added `tokenManager` as a required property for the auth-backend `createRouter` function. This dependency is used to issue server tokens that are used by the `CatalogIdentityClient` when looking up users and their group membership during authentication.
+
+  These changes are **required** to `packages/backend/src/plugins/auth.ts`:
+
+  ```diff
+  export default async function createPlugin({
+    logger,
+    database,
+    config,
+    discovery,
+  + tokenManager,
+  }: PluginEnvironment): Promise<Router> {
+    return await createRouter({
+      logger,
+      config,
+      database,
+      discovery,
+  +   tokenManager,
+    });
+  }
+  ```
+
+  **BREAKING** The `CatalogIdentityClient` constructor now expects a `TokenManager` instead of a `TokenIssuer`. The `TokenManager` interface is used to generate a server token when [resolving a user's identity and membership through the catalog](https://backstage.io/docs/auth/identity-resolver). Using server tokens for these requests allows the auth-backend to bypass authorization checks when permissions are enabled for Backstage. This change will break apps that rely on the user tokens that were previously used by the client. Refer to the ["Backend-to-backend Authentication" tutorial](https://backstage.io/docs/tutorials/backend-to-backend-auth) for more information on server token usage.
+
+### Patch Changes
+
+- 28a5f9d0b1: chore(deps): bump `passport` from 0.4.1 to 0.5.2
+
+## 0.8.0
+
+### Minor Changes
+
+- 67349916ac: The `sub` claim in Backstage tokens generated by the default Google and OIDC sign-in resolvers are now full entity references of the format `<kind>:<namespace>/<name>`.
+
+### Patch Changes
+
+- 033493a8af: Running the `auth-backend` on multiple domains, perhaps different domains depending on the `auth.environment`, was previously not possible as the `domain` name of the cookie was taken from `backend.baseUrl`. This prevented any cookies to be set in the start of the auth flow as the domain of the cookie would not match the domain of the callbackUrl configured in the OAuth app. This change checks if a provider supports custom `callbackUrl`'s to be configured in the application configuration and uses the domain from that, allowing the `domain`'s to match and the cookie to be set.
+- Updated dependencies
+  - @backstage/backend-common@0.10.5
+
+## 0.7.0
+
+### Minor Changes
+
+- 6e92ee6267: Add new authentication provider to support the oauth2-proxy.
+
+  **BREAKING** The `AuthHandler` requires now an `AuthResolverContext` parameter. This aligns with the
+  behavior of the `SignInResolver`.
+
+- f8496730ab: Switched the handling of the `BackstageIdentityResponse` so that the returned `identity.userEntityRef` is always a full entity reference. If `userEntityRef` was previously set to `jane`, it will now be `user:default/jane`. The `userEntityRef` in the response is parsed from the `sub` claim in the payload of the Backstage token.
+- a53d7d8143: Update provider subs to return full entity ref.
+
+### Patch Changes
+
+- f815b7e4a4: build(deps): bump `@google-cloud/firestore` from 4.15.1 to 5.0.2
+- Updated dependencies
+  - @backstage/backend-common@0.10.4
+  - @backstage/config@0.1.13
+  - @backstage/catalog-model@0.9.10
+  - @backstage/catalog-client@0.5.5
+
+## 0.7.0-next.0
+
+### Minor Changes
+
+- 6e92ee6267: Add new authentication provider to support the oauth2-proxy.
+
+  **BREAKING** The `AuthHandler` requires now an `AuthResolverContext` parameter. This aligns with the
+  behavior of the `SignInResolver`.
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/backend-common@0.10.4-next.0
+  - @backstage/config@0.1.13-next.0
+  - @backstage/catalog-model@0.9.10-next.0
+  - @backstage/catalog-client@0.5.5-next.0
+
+## 0.6.2
+
+### Patch Changes
+
+- 5333451def: Cleaned up API exports
+- da9c59d6e0: Removed `@backstage/test-utils` dependency.
+- 20ca7cfa5f: Switched the secure cookie mode set on the `express-session` to use `'auto'` rather than `true`. This works around an issue where cookies would not be set if TLS termination was handled in a proxy rather than having the backend served directly with HTTPS.
+
+  The downside of this change is that secure cookies won't be used unless the backend is directly served with HTTPS. This will be remedied in a future update that allows the backend to configured for trusted proxy mode.
+
+- Updated dependencies
+  - @backstage/config@0.1.12
+  - @backstage/backend-common@0.10.3
+  - @backstage/errors@0.2.0
+  - @backstage/catalog-client@0.5.4
+  - @backstage/catalog-model@0.9.9
+
+## 0.6.1
+
+### Patch Changes
+
+- e0e57817d2: Added Google Cloud Identity-Aware Proxy as an identity provider.
+- Updated dependencies
+  - @backstage/backend-common@0.10.2
+
+## 0.6.0
+
+### Minor Changes
+
+- c88cdacc1a: Avoid ever returning OAuth refresh tokens back to the client, and always exchange refresh tokens for a new one when available for all providers.
+
+  This comes with a breaking change to the TypeScript API for custom auth providers. The `refresh` method of `OAuthHandlers` implementation must now return a `{ response, refreshToken }` object rather than a direct response. Existing `refresh` implementations are typically migrated by changing an existing return expression that looks like this:
+
+  ```ts
+  return await this.handleResult({
+    fullProfile,
+    params,
+    accessToken,
+    refreshToken,
+  });
+  ```
+
+  Into the following:
+
+  ```ts
+  return {
+    response: await this.handleResult({
+      fullProfile,
+      params,
+      accessToken,
+    }),
+    refreshToken,
+  };
+  ```
+
+### Patch Changes
+
+- f0f81f6cc7: Replaces the usage of `got` with `node-fetch` in the `getUserPhoto` method of the Microsoft provider
+- 2f26120a36: Update `auth0` and `onelogin` providers to allow for `authHandler` and `signIn.resolver` configuration.
+- a9abafa9df: Fixed bug on refresh token on Okta provider, now it gets the refresh token and it sends it into providerInfo
+- eb48e78886: Enforce cookie SSL protection when in production for auth-backend sessions
+- Updated dependencies
+  - @backstage/test-utils@0.2.1
+  - @backstage/backend-common@0.10.1
+
+## 0.5.2
+
+### Patch Changes
+
+- 24a67e3e2e: Fixed the fallback identity population to correctly generate an entity reference for `userEntityRef` if no token is provided.
+- Updated dependencies
+  - @backstage/backend-common@0.10.0
+  - @backstage/test-utils@0.2.0
+  - @backstage/catalog-client@0.5.3
+
 ## 0.5.1
 
 ### Patch Changes

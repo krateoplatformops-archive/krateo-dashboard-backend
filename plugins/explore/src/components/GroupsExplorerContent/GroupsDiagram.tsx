@@ -31,7 +31,7 @@ import { configApiRef, useApi, useRouteRef } from '@backstage/core-plugin-api';
 import {
   catalogApiRef,
   entityRouteRef,
-  formatEntityRefTitle,
+  humanizeEntityRef,
   getEntityRelations,
 } from '@backstage/plugin-catalog-react';
 import { BackstageTheme } from '@backstage/theme';
@@ -39,7 +39,7 @@ import { makeStyles, Typography, useTheme } from '@material-ui/core';
 import ZoomOutMap from '@material-ui/icons/ZoomOutMap';
 import classNames from 'classnames';
 import React from 'react';
-import { useAsync } from 'react-use';
+import useAsync from 'react-use/lib/useAsync';
 
 const useStyles = makeStyles((theme: BackstageTheme) => ({
   graph: {
@@ -193,7 +193,7 @@ export function GroupsDiagram() {
       kind: catalogItem.kind,
       name:
         (catalogItem as GroupEntity).spec?.profile?.displayName ||
-        formatEntityRefTitle(catalogItem, { defaultKind: 'Group' }),
+        humanizeEntityRef(catalogItem, { defaultKind: 'Group' }),
     });
 
     // Edge to parent

@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 
-import { BackstageIdentityResponse, BackstageSignInResult } from './types';
+import {
+  DEFAULT_NAMESPACE,
+  parseEntityRef,
+  stringifyEntityRef,
+} from '@backstage/catalog-model';
+import {
+  BackstageIdentityResponse,
+  BackstageSignInResult,
+} from '@backstage/plugin-auth-node';
 
 function parseJwtPayload(token: string) {
   const [_header, payload, _signature] = token.split('.');
@@ -22,7 +30,9 @@ function parseJwtPayload(token: string) {
 }
 
 /**
- * Parses token and decorates the BackstageIdentityResponse with identity information sourced from the token
+ * Parses a Backstage-issued token and decorates the
+ * {@link @backstage/plugin-auth-node#BackstageIdentityResponse} with identity information sourced from the
+ * token.
  *
  * @public
  */
@@ -30,6 +40,13 @@ export function prepareBackstageIdentityResponse(
   result: BackstageSignInResult,
 ): BackstageIdentityResponse {
   const { sub, ent } = parseJwtPayload(result.token);
+
+  const userEntityRef = stringifyEntityRef(
+    parseEntityRef(sub, {
+      defaultKind: 'user',
+      defaultNamespace: DEFAULT_NAMESPACE,
+    }),
+  );
   return {
     ...{
       // TODO: idToken is for backwards compatibility and can be removed in the future
@@ -38,7 +55,7 @@ export function prepareBackstageIdentityResponse(
     },
     identity: {
       type: 'user',
-      userEntityRef: sub,
+      userEntityRef,
       ownershipEntityRefs: ent ?? [],
     },
   };

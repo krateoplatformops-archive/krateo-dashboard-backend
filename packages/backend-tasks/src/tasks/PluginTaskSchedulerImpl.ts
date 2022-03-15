@@ -17,7 +17,12 @@
 import { Knex } from 'knex';
 import { Logger } from 'winston';
 import { TaskWorker } from './TaskWorker';
-import { PluginTaskScheduler, TaskDefinition } from './types';
+import {
+  PluginTaskScheduler,
+  TaskInvocationDefinition,
+  TaskRunner,
+  TaskScheduleDefinition,
+} from './types';
 import { validateId } from './util';
 
 /**
@@ -29,22 +34,35 @@ export class PluginTaskSchedulerImpl implements PluginTaskScheduler {
     private readonly logger: Logger,
   ) {}
 
-  async scheduleTask(task: TaskDefinition): Promise<void> {
+  async scheduleTask(
+    task: TaskScheduleDefinition & TaskInvocationDefinition,
+  ): Promise<void> {
     validateId(task.id);
 
     const knex = await this.databaseFactory();
-
     const worker = new TaskWorker(task.id, task.fn, knex, this.logger);
+
     await worker.start(
       {
-        version: 1,
+        version: 2,
+        cadence:
+          'cron' in task.frequency
+            ? task.frequency.cron
+            : task.frequency.toISO(),
         initialDelayDuration: task.initialDelay?.toISO(),
-        recurringAtMostEveryDuration: task.frequency.toISO(),
         timeoutAfterDuration: task.timeout.toISO(),
       },
       {
         signal: task.signal,
       },
     );
+  }
+
+  createScheduledTaskRunner(schedule: TaskScheduleDefinition): TaskRunner {
+    return {
+      run: async task => {
+        await this.scheduleTask({ ...task, ...schedule });
+      },
+    };
   }
 }

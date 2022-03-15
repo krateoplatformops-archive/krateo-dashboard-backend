@@ -16,9 +16,9 @@
 
 import {
   Entity,
+  AlphaEntity,
   stringifyEntityRef,
-  UNSTABLE_EntityStatusItem,
-  compareEntityToRef,
+  EntityStatusItem,
 } from '@backstage/catalog-model';
 import {
   catalogApiRef,
@@ -33,20 +33,20 @@ import {
   ENTITY_STATUS_CATALOG_PROCESSING_TYPE,
 } from '@backstage/catalog-client';
 import { useApi, ApiHolder } from '@backstage/core-plugin-api';
-import { useAsync } from 'react-use';
+import useAsync from 'react-use/lib/useAsync';
 import { SerializedError } from '@backstage/errors';
 
-const errorFilter = (i: UNSTABLE_EntityStatusItem) =>
+const errorFilter = (i: EntityStatusItem) =>
   i.error &&
   i.level === 'error' &&
   i.type === ENTITY_STATUS_CATALOG_PROCESSING_TYPE;
 
-type GetOwnAndAncestorsErrorsResponse = {
+interface GetOwnAndAncestorsErrorsResponse {
   items: {
     errors: SerializedError[];
     entity: Entity;
   }[];
-};
+}
 
 async function getOwnAndAncestorsErrors(
   entityRef: string,
@@ -55,7 +55,7 @@ async function getOwnAndAncestorsErrors(
   const ancestors = await catalogApi.getEntityAncestors({ entityRef });
   const items = ancestors.items
     .map(item => {
-      const statuses = item.entity.status?.items ?? [];
+      const statuses = (item.entity as AlphaEntity).status?.items ?? [];
       const errors = statuses
         .filter(errorFilter)
         .map(e => e.error)
@@ -66,10 +66,15 @@ async function getOwnAndAncestorsErrors(
   return { items };
 }
 
-export const hasCatalogProcessingErrors = async (
+/**
+ * Returns true if the given entity has any processing errors on it.
+ *
+ * @public
+ */
+export async function hasCatalogProcessingErrors(
   entity: Entity,
   context: { apis: ApiHolder },
-) => {
+) {
   const catalogApi = context.apis.get(catalogApiRef);
   if (!catalogApi) {
     throw new Error(`No implementation available for ${catalogApiRef}`);
@@ -80,12 +85,14 @@ export const hasCatalogProcessingErrors = async (
     catalogApi,
   );
   return errors.items.length > 0;
-};
+}
 
 /**
  * Displays a list of errors from the ancestors of the current entity.
+ *
+ * @public
  */
-export const EntityProcessingErrorsPanel = () => {
+export function EntityProcessingErrorsPanel() {
   const { entity } = useEntity();
   const entityRef = stringifyEntityRef(entity);
   const catalogApi = useApi(catalogApiRef);
@@ -109,10 +116,8 @@ export const EntityProcessingErrorsPanel = () => {
     <>
       {value.items.map((ancestorError, index) => (
         <Box key={index} mb={1}>
-          {!compareEntityToRef(
-            entity,
-            stringifyEntityRef(ancestorError.entity),
-          ) && (
+          {stringifyEntityRef(entity) !==
+            stringifyEntityRef(ancestorError.entity) && (
             <Box p={1}>
               The error below originates from{' '}
               <EntityRefLink entityRef={ancestorError.entity} />
@@ -125,4 +130,4 @@ export const EntityProcessingErrorsPanel = () => {
       ))}
     </>
   );
-};
+}

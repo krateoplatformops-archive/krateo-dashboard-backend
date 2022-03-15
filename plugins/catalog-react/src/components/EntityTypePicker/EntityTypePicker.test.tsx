@@ -26,6 +26,7 @@ import { EntityKindFilter, EntityTypeFilter } from '../../filters';
 import { alertApiRef } from '@backstage/core-plugin-api';
 import { ApiProvider } from '@backstage/core-app-api';
 import { renderWithEffects, TestApiRegistry } from '@backstage/test-utils';
+import { GetEntityFacetsResponse } from '@backstage/catalog-client';
 
 const entities: Entity[] = [
   {
@@ -64,7 +65,14 @@ const apis = TestApiRegistry.from(
   [
     catalogApiRef,
     {
-      getEntities: jest.fn().mockResolvedValue({ items: entities }),
+      getEntityFacets: jest.fn().mockResolvedValue({
+        facets: {
+          'spec.type': entities.map(e => ({
+            value: (e.spec as any).type,
+            count: 1,
+          })),
+        },
+      } as GetEntityFacetsResponse),
     },
   ],
   [
@@ -147,6 +155,40 @@ describe('<EntityTypePicker/>', () => {
       </ApiProvider>,
     );
 
+    expect(updateFilters).toHaveBeenLastCalledWith({
+      type: new EntityTypeFilter(['tool']),
+    });
+  });
+
+  it('responds to external queryParameters changes', async () => {
+    const updateFilters = jest.fn();
+    const rendered = await renderWithEffects(
+      <ApiProvider apis={apis}>
+        <MockEntityListContextProvider
+          value={{
+            updateFilters,
+            queryParameters: { type: 'service' },
+          }}
+        >
+          <EntityTypePicker />
+        </MockEntityListContextProvider>
+      </ApiProvider>,
+    );
+    expect(updateFilters).toHaveBeenLastCalledWith({
+      type: new EntityTypeFilter(['service']),
+    });
+    rendered.rerender(
+      <ApiProvider apis={apis}>
+        <MockEntityListContextProvider
+          value={{
+            updateFilters,
+            queryParameters: { type: 'tool' },
+          }}
+        >
+          <EntityTypePicker />
+        </MockEntityListContextProvider>
+      </ApiProvider>,
+    );
     expect(updateFilters).toHaveBeenLastCalledWith({
       type: new EntityTypeFilter(['tool']),
     });

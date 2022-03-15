@@ -31,7 +31,7 @@ import { DateTime, Duration } from 'luxon';
 import { Incident, IncidentPhase } from '../types';
 import OpenInBrowserIcon from '@material-ui/icons/OpenInBrowser';
 import { splunkOnCallApiRef } from '../../api/client';
-import { useAsyncFn } from 'react-use';
+import useAsyncFn from 'react-use/lib/useAsyncFn';
 import { TriggerAlarmRequest } from '../../api/types';
 
 import {
@@ -64,6 +64,7 @@ type Props = {
   team: string;
   incident: Incident;
   onIncidentAction: () => void;
+  readOnly: boolean;
 };
 
 const IncidentPhaseStatus = ({
@@ -106,7 +107,7 @@ const IncidentAction = ({
   switch (currentPhase) {
     case 'UNACKED':
       return (
-        <Tooltip title="Aknowledge" placement="top">
+        <Tooltip title="Acknowledge" placement="top">
           <IconButton
             onClick={() =>
               acknowledgeAction({ incidentId, incidentType: 'ACKNOWLEDGEMENT' })
@@ -135,6 +136,7 @@ const IncidentAction = ({
 
 export const IncidentListItem = ({
   incident,
+  readOnly,
   onIncidentAction,
   team,
 }: Props) => {
@@ -241,12 +243,14 @@ export const IncidentListItem = ({
 
       {incident.incidentLink && incident.incidentNumber && (
         <ListItemSecondaryAction>
-          <IncidentAction
-            currentPhase={incident.currentPhase || ''}
-            incidentId={incident.entityId}
-            resolveAction={handleResolveIncident}
-            acknowledgeAction={handleAcknowledgeIncident}
-          />
+          {!readOnly && (
+            <IncidentAction
+              currentPhase={incident.currentPhase || ''}
+              incidentId={incident.entityId}
+              resolveAction={handleResolveIncident}
+              acknowledgeAction={handleAcknowledgeIncident}
+            />
+          )}
           <Tooltip title="View in Splunk On-Call" placement="top">
             <IconButton
               href={incident.incidentLink}

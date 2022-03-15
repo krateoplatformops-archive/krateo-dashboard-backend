@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import {
+  ANNOTATION_LOCATION,
+  ANNOTATION_ORIGIN_LOCATION,
   Entity,
-  LOCATION_ANNOTATION,
-  ORIGIN_LOCATION_ANNOTATION,
 } from '@backstage/catalog-model';
 import { Config } from '@backstage/config';
 import {
@@ -41,6 +42,8 @@ import {
 /**
  * Reads user and group entries out of Microsoft Graph, and provides them as
  * User and Group entities for the catalog.
+ *
+ * @public
  */
 export class MicrosoftGraphOrgEntityProvider implements EntityProvider {
   private connection?: EntityProviderConnection;
@@ -91,14 +94,20 @@ export class MicrosoftGraphOrgEntityProvider implements EntityProvider {
     },
   ) {}
 
+  /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.getProviderName} */
   getProviderName() {
     return `MicrosoftGraphOrgEntityProvider:${this.options.id}`;
   }
 
+  /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
   async connect(connection: EntityProviderConnection) {
     this.connection = connection;
   }
 
+  /**
+   * Runs one complete ingestion loop. Call this method regularly at some
+   * appropriate cadence.
+   */
   async read() {
     if (!this.connection) {
       throw new Error('Not initialized');
@@ -114,7 +123,9 @@ export class MicrosoftGraphOrgEntityProvider implements EntityProvider {
       {
         userFilter: provider.userFilter,
         userGroupMemberFilter: provider.userGroupMemberFilter,
+        userGroupMemberSearch: provider.userGroupMemberSearch,
         groupFilter: provider.groupFilter,
+        groupSearch: provider.groupSearch,
         groupTransformer: this.options.groupTransformer,
         userTransformer: this.options.userTransformer,
         organizationTransformer: this.options.organizationTransformer,
@@ -171,8 +182,8 @@ export function withLocations(providerId: string, entity: Entity): Entity {
     {
       metadata: {
         annotations: {
-          [LOCATION_ANNOTATION]: location,
-          [ORIGIN_LOCATION_ANNOTATION]: location,
+          [ANNOTATION_LOCATION]: location,
+          [ANNOTATION_ORIGIN_LOCATION]: location,
         },
       },
     },

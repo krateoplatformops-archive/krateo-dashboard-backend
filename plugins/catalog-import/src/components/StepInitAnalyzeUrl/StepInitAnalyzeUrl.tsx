@@ -27,7 +27,12 @@ type FormData = {
   url: string;
 };
 
-type Props = {
+/**
+ * Props for {@link StepInitAnalyzeUrl}.
+ *
+ * @public
+ */
+export interface StepInitAnalyzeUrlProps {
   onAnalysis: (
     flow: ImportFlows,
     url: string,
@@ -36,20 +41,25 @@ type Props = {
   ) => void;
   disablePullRequest?: boolean;
   analysisUrl?: string;
-};
+  exampleLocationUrl?: string;
+}
 
 /**
  * A form that lets the user input a url and analyze it for existing locations or potential entities.
  *
- * @param onAnalysis is called when the analysis was successful
- * @param analysisUrl a url that can be used as a default value
- * @param disablePullRequest if true, repositories without entities will abort the wizard
+ * @param onAnalysis - is called when the analysis was successful
+ * @param analysisUrl - a url that can be used as a default value
+ * @param disablePullRequest - if true, repositories without entities will abort the wizard
+ * @public
  */
-export const StepInitAnalyzeUrl = ({
-  onAnalysis,
-  analysisUrl = '',
-  disablePullRequest = false,
-}: Props) => {
+export const StepInitAnalyzeUrl = (props: StepInitAnalyzeUrlProps) => {
+  const {
+    onAnalysis,
+    analysisUrl = '',
+    disablePullRequest = false,
+    exampleLocationUrl = 'https://github.com/backstage/backstage/blob/master/catalog-info.yaml',
+  } = props;
+
   const errorApi = useApi(errorApiRef);
   const catalogImportApi = useApi(catalogImportApiRef);
 
@@ -138,7 +148,7 @@ export const StepInitAnalyzeUrl = ({
         fullWidth
         id="url"
         label="Repository URL"
-        placeholder="https://github.com/backstage/backstage/blob/master/catalog-info.yaml"
+        placeholder={exampleLocationUrl}
         helperText="Enter the full path to your entity file to start tracking your component"
         margin="normal"
         variant="outlined"

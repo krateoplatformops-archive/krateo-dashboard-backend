@@ -16,16 +16,12 @@
 
 import { scmIntegrationsApiRef } from '@backstage/integration-react';
 import { scaffolderApiRef, ScaffolderClient } from './api';
-import { EntityPicker } from './components/fields/EntityPicker';
-import {
-  entityNamePickerValidation,
-  EntityNamePicker,
-} from './components/fields/EntityNamePicker';
-import { OwnerPicker } from './components/fields/OwnerPicker';
-import {
-  repoPickerValidation,
-  RepoUrlPicker,
-} from './components/fields/RepoUrlPicker';
+import { EntityPicker } from './components/fields/EntityPicker/EntityPicker';
+import { entityNamePickerValidation } from './components/fields/EntityNamePicker';
+import { EntityNamePicker } from './components/fields/EntityNamePicker/EntityNamePicker';
+import { OwnerPicker } from './components/fields/OwnerPicker/OwnerPicker';
+import { repoPickerValidation } from './components/fields/RepoUrlPicker';
+import { RepoUrlPicker } from './components/fields/RepoUrlPicker/RepoUrlPicker';
 import { createScaffolderFieldExtension } from './extensions';
 import { registerComponentRouteRef, rootRouteRef } from './routes';
 import {
@@ -33,9 +29,15 @@ import {
   createPlugin,
   createRoutableExtension,
   discoveryApiRef,
-  identityApiRef,
+  fetchApiRef,
 } from '@backstage/core-plugin-api';
+import { OwnedEntityPicker } from './components/fields/OwnedEntityPicker/OwnedEntityPicker';
+import { EntityTagsPicker } from './components/fields/EntityTagsPicker/EntityTagsPicker';
 
+/**
+ * The main plugin export for the scaffolder.
+ * @public
+ */
 export const scaffolderPlugin = createPlugin({
   id: 'scaffolder',
   apis: [
@@ -43,11 +45,15 @@ export const scaffolderPlugin = createPlugin({
       api: scaffolderApiRef,
       deps: {
         discoveryApi: discoveryApiRef,
-        identityApi: identityApiRef,
         scmIntegrationsApi: scmIntegrationsApiRef,
+        fetchApi: fetchApiRef,
       },
-      factory: ({ discoveryApi, identityApi, scmIntegrationsApi }) =>
-        new ScaffolderClient({ discoveryApi, identityApi, scmIntegrationsApi }),
+      factory: ({ discoveryApi, scmIntegrationsApi, fetchApi }) =>
+        new ScaffolderClient({
+          discoveryApi,
+          scmIntegrationsApi,
+          fetchApi,
+        }),
     }),
   ],
   routes: {
@@ -58,6 +64,11 @@ export const scaffolderPlugin = createPlugin({
   },
 });
 
+/**
+ * A field extension for selecting an Entity that exists in the Catalog.
+ *
+ * @public
+ */
 export const EntityPickerFieldExtension = scaffolderPlugin.provide(
   createScaffolderFieldExtension({
     component: EntityPicker,
@@ -65,6 +76,11 @@ export const EntityPickerFieldExtension = scaffolderPlugin.provide(
   }),
 );
 
+/**
+ * The field extension for selecting a name for a new Entity in the Catalog.
+ *
+ * @public
+ */
 export const EntityNamePickerFieldExtension = scaffolderPlugin.provide(
   createScaffolderFieldExtension({
     component: EntityNamePicker,
@@ -73,6 +89,12 @@ export const EntityNamePickerFieldExtension = scaffolderPlugin.provide(
   }),
 );
 
+/**
+ * The field extension which provides the ability to select a RepositoryUrl.
+ * Currently this is an encoded URL that looks something like the following `github.com?repo=myRepoName&owner=backstage`.
+ *
+ * @public
+ */
 export const RepoUrlPickerFieldExtension = scaffolderPlugin.provide(
   createScaffolderFieldExtension({
     component: RepoUrlPicker,
@@ -81,6 +103,11 @@ export const RepoUrlPickerFieldExtension = scaffolderPlugin.provide(
   }),
 );
 
+/**
+ * A field extension for picking users and groups out of the Catalog.
+ *
+ * @public
+ */
 export const OwnerPickerFieldExtension = scaffolderPlugin.provide(
   createScaffolderFieldExtension({
     component: OwnerPicker,
@@ -88,10 +115,38 @@ export const OwnerPickerFieldExtension = scaffolderPlugin.provide(
   }),
 );
 
+/**
+ * The Router and main entrypoint to the Scaffolder plugin.
+ *
+ * @public
+ */
 export const ScaffolderPage = scaffolderPlugin.provide(
   createRoutableExtension({
     name: 'ScaffolderPage',
     component: () => import('./components/Router').then(m => m.Router),
     mountPoint: rootRouteRef,
+  }),
+);
+
+/**
+ * A field extension to show all the Entities that are owned by the current logged-in User for use in templates.
+ *
+ * @public
+ */
+export const OwnedEntityPickerFieldExtension = scaffolderPlugin.provide(
+  createScaffolderFieldExtension({
+    component: OwnedEntityPicker,
+    name: 'OwnedEntityPicker',
+  }),
+);
+
+/**
+ * EntityTagsPickerFieldExtension
+ * @public
+ */
+export const EntityTagsPickerFieldExtension = scaffolderPlugin.provide(
+  createScaffolderFieldExtension({
+    component: EntityTagsPicker,
+    name: 'EntityTagsPicker',
   }),
 );

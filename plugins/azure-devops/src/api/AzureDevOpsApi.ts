@@ -15,6 +15,8 @@
  */
 
 import {
+  BuildRun,
+  BuildRunOptions,
   DashboardPullRequest,
   PullRequest,
   PullRequestOptions,
@@ -27,8 +29,6 @@ import { createApiRef } from '@backstage/core-plugin-api';
 
 export const azureDevOpsApiRef = createApiRef<AzureDevOpsApi>({
   id: 'plugin.azure-devops.service',
-  description:
-    'Used by the Azure DevOps plugin to make requests to accompanying backend',
 });
 
 export interface AzureDevOpsApi {
@@ -49,4 +49,13 @@ export interface AzureDevOpsApi {
   ): Promise<DashboardPullRequest[]>;
 
   getAllTeams(): Promise<Team[]>;
+
+  getUserTeamIds(userId: string): Promise<string[]>;
+
+  getBuildRuns(
+    projectName: string,
+    repoName?: string,
+    definitionName?: string,
+    options?: BuildRunOptions,
+  ): Promise<{ items: BuildRun[] }>;
 }

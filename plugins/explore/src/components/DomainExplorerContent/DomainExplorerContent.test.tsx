@@ -15,25 +15,24 @@
  */
 
 import { DomainEntity } from '@backstage/catalog-model';
-import { catalogApiRef } from '@backstage/plugin-catalog-react';
+import { catalogApiRef, entityRouteRef } from '@backstage/plugin-catalog-react';
 import { renderInTestApp, TestApiProvider } from '@backstage/test-utils';
 import { waitFor } from '@testing-library/react';
 import React from 'react';
-import { catalogEntityRouteRef } from '../../routes';
 import { DomainExplorerContent } from './DomainExplorerContent';
 
 describe('<DomainExplorerContent />', () => {
   const catalogApi: jest.Mocked<typeof catalogApiRef.T> = {
     addLocation: jest.fn(_a => new Promise(() => {})),
     getEntities: jest.fn(),
-    getOriginLocationByEntity: jest.fn(),
-    getLocationByEntity: jest.fn(),
+    getLocationByRef: jest.fn(),
     getLocationById: jest.fn(),
     removeLocationById: jest.fn(),
     removeEntityByUid: jest.fn(),
-    getEntityByName: jest.fn(),
+    getEntityByRef: jest.fn(),
     refreshEntity: jest.fn(),
     getEntityAncestors: jest.fn(),
+    getEntityFacets: jest.fn(),
   };
 
   const Wrapper = ({ children }: { children?: React.ReactNode }) => (
@@ -44,7 +43,7 @@ describe('<DomainExplorerContent />', () => {
 
   const mountedRoutes = {
     mountedRoutes: {
-      '/catalog/:namespace/:kind/:name': catalogEntityRouteRef,
+      '/catalog/:namespace/:kind/:name': entityRouteRef,
     },
   };
 

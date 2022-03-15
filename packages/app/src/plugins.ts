@@ -18,3 +18,5 @@
 //               ideally we have an API for the context menu that permits that.
 export { badgesPlugin } from '@backstage/plugin-badges';
 export { shortcutsPlugin } from '@backstage/plugin-shortcuts';
+export { grafanaPlugin } from '@k-phoen/backstage-plugin-grafana';
+export { argocdPlugin } from '@roadiehq/backstage-plugin-argo-cd';

@@ -17,7 +17,7 @@
 import { ApiEntity } from '@backstage/catalog-model';
 import { defaultDefinitionWidgets } from './components/ApiDefinitionCard';
 import { apiDocsConfigRef } from './config';
-import { createComponentRouteRef, rootRoute } from './routes';
+import { registerComponentRouteRef, rootRoute } from './routes';
 import {
   createApiFactory,
   createComponentExtension,
@@ -45,7 +45,7 @@ export const apiDocsPlugin = createPlugin({
     }),
   ],
   externalRoutes: {
-    createComponent: createComponentRouteRef,
+    registerApi: registerComponentRouteRef,
   },
 });
 
@@ -53,7 +53,7 @@ export const ApiExplorerPage = apiDocsPlugin.provide(
   createRoutableExtension({
     name: 'ApiExplorerPage',
     component: () =>
-      import('./components/ApiExplorerPage').then(m => m.ApiExplorerPage),
+      import('./components/ApiExplorerPage').then(m => m.ApiExplorerIndexPage),
     mountPoint: rootRoute,
   }),
 );

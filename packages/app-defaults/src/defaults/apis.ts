@@ -21,19 +21,18 @@ import {
   ErrorAlerter,
   GoogleAuth,
   GithubAuth,
-  OAuth2,
   OktaAuth,
   GitlabAuth,
-  Auth0Auth,
   MicrosoftAuth,
   BitbucketAuth,
   OAuthRequestManager,
   WebStorage,
   UrlPatternDiscovery,
-  SamlAuth,
   OneLoginAuth,
   UnhandledErrorForwarder,
   AtlassianAuth,
+  createFetchApi,
+  FetchMiddlewares,
 } from '@backstage/core-app-api';
 
 import {
@@ -42,22 +41,24 @@ import {
   analyticsApiRef,
   errorApiRef,
   discoveryApiRef,
+  fetchApiRef,
+  identityApiRef,
   oauthRequestApiRef,
   googleAuthApiRef,
   githubAuthApiRef,
-  oauth2ApiRef,
   oktaAuthApiRef,
   gitlabAuthApiRef,
-  auth0AuthApiRef,
   microsoftAuthApiRef,
   storageApiRef,
   configApiRef,
-  samlAuthApiRef,
   oneloginAuthApiRef,
-  oidcAuthApiRef,
   bitbucketAuthApiRef,
   atlassianAuthApiRef,
 } from '@backstage/core-plugin-api';
+import {
+  permissionApiRef,
+  IdentityPermissionApi,
+} from '@backstage/plugin-permission-react';
 
 export const apis = [
   createApiFactory({
@@ -91,6 +92,27 @@ export const apis = [
     api: storageApiRef,
     deps: { errorApi: errorApiRef },
     factory: ({ errorApi }) => WebStorage.create({ errorApi }),
+  }),
+  createApiFactory({
+    api: fetchApiRef,
+    deps: {
+      configApi: configApiRef,
+      identityApi: identityApiRef,
+      discoveryApi: discoveryApiRef,
+    },
+    factory: ({ configApi, identityApi, discoveryApi }) => {
+      return createFetchApi({
+        middleware: [
+          FetchMiddlewares.resolvePluginProtocol({
+            discoveryApi,
+          }),
+          FetchMiddlewares.injectIdentityAuth({
+            identityApi,
+            config: configApi,
+          }),
+        ],
+      });
+    },
   }),
   createApiFactory({
     api: oauthRequestApiRef,
@@ -169,46 +191,6 @@ export const apis = [
       }),
   }),
   createApiFactory({
-    api: auth0AuthApiRef,
-    deps: {
-      discoveryApi: discoveryApiRef,
-      oauthRequestApi: oauthRequestApiRef,
-      configApi: configApiRef,
-    },
-    factory: ({ discoveryApi, oauthRequestApi, configApi }) =>
-      Auth0Auth.create({
-        discoveryApi,
-        oauthRequestApi,
-        environment: configApi.getOptionalString('auth.environment'),
-      }),
-  }),
-  createApiFactory({
-    api: oauth2ApiRef,
-    deps: {
-      discoveryApi: discoveryApiRef,
-      oauthRequestApi: oauthRequestApiRef,
-      configApi: configApiRef,
-    },
-    factory: ({ discoveryApi, oauthRequestApi, configApi }) =>
-      OAuth2.create({
-        discoveryApi,
-        oauthRequestApi,
-        environment: configApi.getOptionalString('auth.environment'),
-      }),
-  }),
-  createApiFactory({
-    api: samlAuthApiRef,
-    deps: {
-      discoveryApi: discoveryApiRef,
-      configApi: configApiRef,
-    },
-    factory: ({ discoveryApi, configApi }) =>
-      SamlAuth.create({
-        discoveryApi,
-        environment: configApi.getOptionalString('auth.environment'),
-      }),
-  }),
-  createApiFactory({
     api: oneloginAuthApiRef,
     deps: {
       discoveryApi: discoveryApiRef,
@@ -219,25 +201,6 @@ export const apis = [
       OneLoginAuth.create({
         discoveryApi,
         oauthRequestApi,
-        environment: configApi.getOptionalString('auth.environment'),
-      }),
-  }),
-  createApiFactory({
-    api: oidcAuthApiRef,
-    deps: {
-      discoveryApi: discoveryApiRef,
-      oauthRequestApi: oauthRequestApiRef,
-      configApi: configApiRef,
-    },
-    factory: ({ discoveryApi, oauthRequestApi, configApi }) =>
-      OAuth2.create({
-        discoveryApi,
-        oauthRequestApi,
-        provider: {
-          id: 'oidc',
-          title: 'Your Identity Provider',
-          icon: () => null,
-        },
         environment: configApi.getOptionalString('auth.environment'),
       }),
   }),
@@ -270,5 +233,15 @@ export const apis = [
         environment: configApi.getOptionalString('auth.environment'),
       });
     },
+  }),
+  createApiFactory({
+    api: permissionApiRef,
+    deps: {
+      discovery: discoveryApiRef,
+      identity: identityApiRef,
+      config: configApiRef,
+    },
+    factory: ({ config, discovery, identity }) =>
+      IdentityPermissionApi.create({ config, discovery, identity }),
   }),
 ];

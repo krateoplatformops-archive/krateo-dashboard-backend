@@ -14,34 +14,44 @@
  * limitations under the License.
  */
 
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { SearchBarBase } from '../SearchBar';
+import { SearchBarBase, SearchBarBaseProps } from '../SearchBar';
 import { useNavigateToQuery } from '../util';
 
 const useStyles = makeStyles({
-  searchBar: {
+  root: {
     border: '1px solid #555',
     borderRadius: '6px',
     fontSize: '1.5em',
   },
 });
 
-type Props = {
-  placeholder?: string;
-};
+/**
+ * Props for {@link HomePageSearchBar}.
+ *
+ * @public
+ */
+export type HomePageSearchBarProps = Partial<
+  Omit<SearchBarBaseProps, 'onChange' | 'onSubmit'>
+>;
 
-export const HomePageSearchBar = ({ placeholder }: Props) => {
-  const [query, setQuery] = React.useState('');
+/**
+ * The search bar created specifically for the composable home page
+ *
+ * @public
+ */
+export const HomePageSearchBar = ({ ...props }: HomePageSearchBarProps) => {
+  const classes = useStyles(props);
+  const [query, setQuery] = useState('');
   const handleSearch = useNavigateToQuery();
-  const classes = useStyles();
 
   const handleSubmit = () => {
     handleSearch({ query });
   };
 
-  const handleChange = React.useCallback(
+  const handleChange = useCallback(
     value => {
       setQuery(value);
     },
@@ -50,11 +60,11 @@ export const HomePageSearchBar = ({ placeholder }: Props) => {
 
   return (
     <SearchBarBase
+      classes={{ root: classes.root }}
+      value={query}
       onSubmit={handleSubmit}
       onChange={handleChange}
-      value={query}
-      className={classes.searchBar}
-      placeholder={placeholder}
+      {...props}
     />
   );
 };

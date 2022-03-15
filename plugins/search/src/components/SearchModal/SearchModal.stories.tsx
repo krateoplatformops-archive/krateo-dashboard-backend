@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Spotify AB
+ * Copyright 2021 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,48 +14,42 @@
  * limitations under the License.
  */
 
-import React, { ComponentType } from 'react';
-import { Button } from '@material-ui/core';
-import { ApiProvider, ApiRegistry } from '@backstage/core-app-api';
 import { wrapInTestApp } from '@backstage/test-utils';
-import { SearchModal } from '../index';
-import { useSearch, SearchContextProvider } from '../SearchContext';
-import { searchApiRef } from '../../apis';
+import { Button } from '@material-ui/core';
+import React, { ComponentType } from 'react';
 import { rootRouteRef } from '../../plugin';
+import { SearchApiProvider } from '../SearchContext/SearchContextForStorybook.stories';
+import { SearchModal } from './SearchModal';
+import { useSearchModal } from './useSearchModal';
 
-const mockSearchApi = {
-  query: () =>
-    Promise.resolve({
-      results: [
-        {
-          type: 'custom-result-item',
-          document: {
-            location: 'search/search-result-1',
-            title: 'Search Result 1',
-            text: 'some text from the search result',
-          },
-        },
-        {
-          type: 'no-custom-result-item',
-          document: {
-            location: 'search/search-result-2',
-            title: 'Search Result 2',
-            text: 'some text from the search result',
-          },
-        },
-        {
-          type: 'no-custom-result-item',
-          document: {
-            location: 'search/search-result-3',
-            title: 'Search Result 3',
-            text: 'some text from the search result',
-          },
-        },
-      ],
-    }),
+const mockResults = {
+  results: [
+    {
+      type: 'custom-result-item',
+      document: {
+        location: 'search/search-result-1',
+        title: 'Search Result 1',
+        text: 'some text from the search result',
+      },
+    },
+    {
+      type: 'no-custom-result-item',
+      document: {
+        location: 'search/search-result-2',
+        title: 'Search Result 2',
+        text: 'some text from the search result',
+      },
+    },
+    {
+      type: 'no-custom-result-item',
+      document: {
+        location: 'search/search-result-3',
+        title: 'Search Result 3',
+        text: 'some text from the search result',
+      },
+    },
+  ],
 };
-
-const apiRegistry = () => ApiRegistry.from([[searchApiRef, mockSearchApi]]);
 
 export default {
   title: 'Plugins/Search/SearchModal',
@@ -63,27 +57,23 @@ export default {
   decorators: [
     (Story: ComponentType<{}>) =>
       wrapInTestApp(
-        <>
-          <ApiProvider apis={apiRegistry()}>
-            <SearchContextProvider>
-              <Story />
-            </SearchContextProvider>
-          </ApiProvider>
-        </>,
+        <SearchApiProvider mockedResults={mockResults}>
+          <Story />
+        </SearchApiProvider>,
         { mountedRoutes: { '/search': rootRouteRef } },
       ),
   ],
 };
 
 export const Default = () => {
-  const { open, toggleModal } = useSearch();
+  const { state, toggleModal } = useSearchModal();
 
   return (
     <>
       <Button variant="contained" color="primary" onClick={toggleModal}>
         Toggle Search Modal
       </Button>
-      <SearchModal open={open} toggleModal={toggleModal} />
+      <SearchModal {...state} toggleModal={toggleModal} />
     </>
   );
 };

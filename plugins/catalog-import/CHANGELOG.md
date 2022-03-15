@@ -1,5 +1,255 @@
 # @backstage/plugin-catalog-import
 
+## 0.8.5
+
+### Patch Changes
+
+- bf95bb806c: Remove usages of now-removed `CatalogApi.getEntityByName`
+- Updated dependencies
+  - @backstage/plugin-catalog-react@0.9.0
+  - @backstage/core-components@0.9.1
+  - @backstage/catalog-model@0.13.0
+  - @backstage/catalog-client@0.9.0
+  - @backstage/integration-react@0.1.25
+
+## 0.8.5-next.0
+
+### Patch Changes
+
+- bf95bb806c: Remove usages of now-removed `CatalogApi.getEntityByName`
+- Updated dependencies
+  - @backstage/plugin-catalog-react@0.9.0-next.0
+  - @backstage/core-components@0.9.1-next.0
+  - @backstage/catalog-model@0.13.0-next.0
+  - @backstage/catalog-client@0.9.0-next.0
+  - @backstage/integration-react@0.1.25-next.0
+
+## 0.8.4
+
+### Patch Changes
+
+- 899f196af5: Use `getEntityByRef` instead of `getEntityByName` in the catalog client
+- f41a293231: - **DEPRECATION**: Deprecated `formatEntityRefTitle` in favor of the new `humanizeEntityRef` method instead. Please migrate to using the new method instead.
+- 36aa63022b: Use `CompoundEntityRef` instead of `EntityName`, and `getCompoundEntityRef` instead of `getEntityName`, from `@backstage/catalog-model`.
+- Updated dependencies
+  - @backstage/catalog-model@0.12.0
+  - @backstage/catalog-client@0.8.0
+  - @backstage/core-components@0.9.0
+  - @backstage/plugin-catalog-react@0.8.0
+  - @backstage/integration@0.8.0
+  - @backstage/core-plugin-api@0.8.0
+  - @backstage/integration-react@0.1.24
+
+## 0.8.3
+
+### Patch Changes
+
+- 6e1cbc12a6: Updated according to the new `getEntityFacets` catalog API method
+- Updated dependencies
+  - @backstage/core-components@0.8.10
+  - @backstage/plugin-catalog-react@0.7.0
+  - @backstage/catalog-model@0.11.0
+  - @backstage/catalog-client@0.7.2
+  - @backstage/core-plugin-api@0.7.0
+  - @backstage/integration@0.7.5
+  - @backstage/integration-react@0.1.23
+
+## 0.8.2
+
+### Patch Changes
+
+- 1ed305728b: Bump `node-fetch` to version 2.6.7 and `cross-fetch` to version 3.1.5
+- c77c5c7eb6: Added `backstage.role` to `package.json`
+- deaf6065db: Adapt to the new `CatalogApi.getLocationByRef`
+- Updated dependencies
+  - @backstage/catalog-client@0.7.0
+  - @backstage/core-components@0.8.9
+  - @backstage/core-plugin-api@0.6.1
+  - @backstage/errors@0.2.1
+  - @backstage/integration@0.7.3
+  - @backstage/integration-react@0.1.22
+  - @backstage/plugin-catalog-react@0.6.15
+  - @backstage/catalog-model@0.10.0
+  - @backstage/config@0.1.14
+
+## 0.8.1
+
+### Patch Changes
+
+- 7bb1bde7f6: Minor API cleanups
+- Updated dependencies
+  - @backstage/catalog-client@0.6.0
+  - @backstage/core-components@0.8.8
+  - @backstage/plugin-catalog-react@0.6.14
+  - @backstage/integration-react@0.1.21
+
+## 0.8.1-next.0
+
+### Patch Changes
+
+- 7bb1bde7f6: Minor API cleanups
+- Updated dependencies
+  - @backstage/core-components@0.8.8-next.0
+  - @backstage/plugin-catalog-react@0.6.14-next.0
+  - @backstage/integration-react@0.1.21-next.0
+
+## 0.8.0
+
+### Minor Changes
+
+- 2e8764b95f: Make filename, branch name and examples URLs used in catalog import customizable.
+
+  Catalog backend ingestion loop can be already configured to fetch targets with custom catalog filename (other than `catalog-info.yaml`). It's now possible to customize said filename and branch name used in pull requests created by catalog import flow too. This allows organizations to further customize Backstage experience and to better reflect their branding.
+
+  Filename (default: `catalog-info.yaml`) and branch name (default: `backstage-integration`) used in pull requests can be configured in `app-config.yaml` as follows:
+
+  ```yaml
+  // app-config.yaml
+
+  catalog:
+    import:
+      entityFilename: anvil.yaml
+      pullRequestBranchName: anvil-integration
+  ```
+
+  Following React components have also been updated to accept optional props for providing example entity and repository paths:
+
+  ```tsx
+  <StepInitAnalyzeUrl
+    ...
+    exampleLocationUrl="https://github.com/acme-corp/our-awesome-api/blob/main/anvil.yaml"
+  />
+  ```
+
+  ```tsx
+  <ImportInfoCard
+    exampleLocationUrl="https://github.com/acme-corp/our-awesome-api/blob/main/anvil.yaml"
+    exampleRepositoryUrl="https://github.com/acme-corp/our-awesome-api"
+  />
+  ```
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.7
+  - @backstage/plugin-catalog-react@0.6.13
+  - @backstage/integration-react@0.1.20
+
+## 0.8.0-next.0
+
+### Minor Changes
+
+- 2e8764b95f: Make filename, branch name and examples URLs used in catalog import customizable.
+
+  Catalog backend ingestion loop can be already configured to fetch targets with custom catalog filename (other than `catalog-info.yaml`). It's now possible to customize said filename and branch name used in pull requests created by catalog import flow too. This allows organizations to further customize Backstage experience and to better reflect their branding.
+
+  Filename (default: `catalog-info.yaml`) and branch name (default: `backstage-integration`) used in pull requests can be configured in `app-config.yaml` as follows:
+
+  ```yaml
+  // app-config.yaml
+
+  catalog:
+    import:
+      entityFilename: anvil.yaml
+      pullRequestBranchName: anvil-integration
+  ```
+
+  Following React components have also been updated to accept optional props for providing example entity and repository paths:
+
+  ```tsx
+  <StepInitAnalyzeUrl
+    ...
+    exampleLocationUrl="https://github.com/acme-corp/our-awesome-api/blob/main/anvil.yaml"
+  />
+  ```
+
+  ```tsx
+  <ImportInfoCard
+    exampleLocationUrl="https://github.com/acme-corp/our-awesome-api/blob/main/anvil.yaml"
+    exampleRepositoryUrl="https://github.com/acme-corp/our-awesome-api"
+  />
+  ```
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.7-next.0
+  - @backstage/integration-react@0.1.20-next.0
+  - @backstage/plugin-catalog-react@0.6.13-next.0
+
+## 0.7.10
+
+### Patch Changes
+
+- 51fbedc445: Migrated usage of deprecated `IdentityApi` methods.
+- Updated dependencies
+  - @backstage/core-components@0.8.5
+  - @backstage/integration@0.7.2
+  - @backstage/core-plugin-api@0.6.0
+  - @backstage/plugin-catalog-react@0.6.12
+  - @backstage/catalog-model@0.9.10
+  - @backstage/catalog-client@0.5.5
+  - @backstage/integration-react@0.1.19
+
+## 0.7.10-next.0
+
+### Patch Changes
+
+- 51fbedc445: Migrated usage of deprecated `IdentityApi` methods.
+- Updated dependencies
+  - @backstage/core-components@0.8.5-next.0
+  - @backstage/core-plugin-api@0.6.0-next.0
+  - @backstage/plugin-catalog-react@0.6.12-next.0
+  - @backstage/catalog-model@0.9.10-next.0
+  - @backstage/integration-react@0.1.19-next.0
+  - @backstage/catalog-client@0.5.5-next.0
+  - @backstage/integration@0.7.2-next.0
+
+## 0.7.9
+
+### Patch Changes
+
+- 5333451def: Cleaned up API exports
+- Updated dependencies
+  - @backstage/integration@0.7.1
+  - @backstage/core-components@0.8.4
+  - @backstage/core-plugin-api@0.5.0
+  - @backstage/plugin-catalog-react@0.6.11
+  - @backstage/errors@0.2.0
+  - @backstage/catalog-client@0.5.4
+  - @backstage/catalog-model@0.9.9
+  - @backstage/integration-react@0.1.18
+
+## 0.7.8
+
+### Patch Changes
+
+- 4ce51ab0f1: Internal refactor of the `react-use` imports to use `react-use/lib/*` instead.
+- Updated dependencies
+  - @backstage/core-plugin-api@0.4.1
+  - @backstage/plugin-catalog-react@0.6.10
+  - @backstage/core-components@0.8.3
+
+## 0.7.7
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-catalog-react@0.6.9
+  - @backstage/integration@0.7.0
+  - @backstage/integration-react@0.1.17
+
+## 0.7.6
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-plugin-api@0.4.0
+  - @backstage/plugin-catalog-react@0.6.8
+  - @backstage/core-components@0.8.2
+  - @backstage/catalog-client@0.5.3
+  - @backstage/integration-react@0.1.16
+
 ## 0.7.5
 
 ### Patch Changes

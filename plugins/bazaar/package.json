@@ -1,6 +1,6 @@
 {
   "name": "@backstage/plugin-bazaar",
-  "version": "0.1.6",
+  "version": "0.1.17",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "license": "Apache-2.0",
@@ -10,23 +10,27 @@
     "main": "dist/index.esm.js",
     "types": "dist/index.d.ts"
   },
+  "backstage": {
+    "role": "frontend-plugin"
+  },
   "scripts": {
-    "build": "backstage-cli plugin:build",
-    "start": "backstage-cli plugin:serve",
-    "lint": "backstage-cli lint",
-    "test": "backstage-cli test",
+    "build": "backstage-cli package build",
+    "start": "backstage-cli package start",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test",
     "diff": "backstage-cli plugin:diff",
-    "prepack": "backstage-cli prepack",
-    "postpack": "backstage-cli postpack",
-    "clean": "backstage-cli clean"
+    "prepack": "backstage-cli package prepack",
+    "postpack": "backstage-cli package postpack",
+    "clean": "backstage-cli package clean"
   },
   "dependencies": {
-    "@backstage/catalog-model": "^0.9.7",
-    "@backstage/cli": "^0.10.1",
-    "@backstage/core-components": "^0.8.1",
-    "@backstage/core-plugin-api": "^0.3.1",
-    "@backstage/plugin-catalog": "^0.7.4",
-    "@backstage/plugin-catalog-react": "^0.6.5",
+    "@backstage/catalog-client": "^0.9.0",
+    "@backstage/catalog-model": "^0.13.0",
+    "@backstage/cli": "^0.15.2",
+    "@backstage/core-components": "^0.9.1",
+    "@backstage/core-plugin-api": "^0.8.0",
+    "@backstage/plugin-catalog": "^0.10.0",
+    "@backstage/plugin-catalog-react": "^0.9.0",
     "@date-io/luxon": "1.x",
     "@material-ui/core": "^4.12.2",
     "@material-ui/icons": "^4.9.1",
@@ -34,6 +38,7 @@
     "@material-ui/pickers": "^3.3.10",
     "@testing-library/jest-dom": "^5.10.1",
     "luxon": "^2.0.2",
+    "material-ui-search-bar": "^1.0.0",
     "react-hook-form": "^7.13.0",
     "react-router-dom": "6.0.0-beta.0",
     "react-use": "^17.2.4"
@@ -42,10 +47,10 @@
     "react": "^16.13.1 || ^17.0.0"
   },
   "devDependencies": {
-    "@backstage/cli": "^0.10.2",
-    "@backstage/dev-utils": "^0.2.14",
+    "@backstage/cli": "^0.15.3",
+    "@backstage/dev-utils": "^0.2.25",
     "@testing-library/jest-dom": "^5.10.1",
-    "cross-fetch": "^3.0.6"
+    "cross-fetch": "^3.1.5"
   },
   "files": [
     "dist"

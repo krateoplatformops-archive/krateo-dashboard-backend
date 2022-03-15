@@ -15,14 +15,7 @@
  */
 
 import { ScmIntegrations } from '@backstage/integration';
-import {
-  TaskContext,
-  TaskSpec,
-  TaskSpecV1beta3,
-  TaskStep,
-  WorkflowResponse,
-  WorkflowRunner,
-} from './types';
+import { TaskContext, WorkflowResponse, WorkflowRunner } from './types';
 import * as winston from 'winston';
 import fs from 'fs-extra';
 import path from 'path';
@@ -35,15 +28,22 @@ import { validate as validateJsonSchema } from 'jsonschema';
 import { parseRepoUrl } from '../actions/builtin/publish/util';
 import { TemplateActionRegistry } from '../actions';
 import {
+  TemplateFilter,
   SecureTemplater,
   SecureTemplateRenderer,
 } from '../../lib/templating/SecureTemplater';
+import {
+  TaskSpec,
+  TaskSpecV1beta3,
+  TaskStep,
+} from '@backstage/plugin-scaffolder-common';
 
 type NunjucksWorkflowRunnerOptions = {
   workingDirectory: string;
   actionRegistry: TemplateActionRegistry;
   integrations: ScmIntegrations;
   logger: winston.Logger;
+  additionalTemplateFilters?: Record<string, TemplateFilter>;
 };
 
 type TemplateContext = {
@@ -51,6 +51,7 @@ type TemplateContext = {
   steps: {
     [stepName: string]: { output: { [outputName: string]: JsonValue } };
   };
+  secrets?: Record<string, string>;
 };
 
 const isValidTaskSpec = (taskSpec: TaskSpec): taskSpec is TaskSpecV1beta3 => {
@@ -190,6 +191,7 @@ export class NunjucksWorkflowRunner implements WorkflowRunner {
       parseRepoUrl(url: string) {
         return parseRepoUrl(url, integrations);
       },
+      additionalTemplateFilters: this.options.additionalTemplateFilters,
     });
 
     try {
@@ -228,8 +230,14 @@ export class NunjucksWorkflowRunner implements WorkflowRunner {
           const action = this.options.actionRegistry.get(step.action);
           const { taskLogger, streamLogger } = createStepLogger({ task, step });
 
+          // Secrets are only passed when templating the input to actions for security reasons
           const input =
-            (step.input && this.render(step.input, context, renderTemplate)) ??
+            (step.input &&
+              this.render(
+                step.input,
+                { ...context, secrets: task.secrets ?? {} },
+                renderTemplate,
+              )) ??
             {};
 
           if (action.schema?.input) {
@@ -248,15 +256,9 @@ export class NunjucksWorkflowRunner implements WorkflowRunner {
           const tmpDirs = new Array<string>();
           const stepOutput: { [outputName: string]: JsonValue } = {};
 
-          if (!task.spec.metadata) {
-            console.warn(
-              'DEPRECATION NOTICE: metadata is undefined. metadata will be required in the future.',
-            );
-          }
-
           await action.handler({
-            baseUrl: task.spec.baseUrl,
             input,
+            secrets: task.secrets ?? {},
             logger: taskLogger,
             logStream: streamLogger,
             workspacePath,
@@ -270,7 +272,7 @@ export class NunjucksWorkflowRunner implements WorkflowRunner {
             output(name: string, value: JsonValue) {
               stepOutput[name] = value;
             },
-            metadata: task.spec.metadata,
+            templateInfo: task.spec.templateInfo,
           });
 
           // Remove all temporary directories that were created when executing the action

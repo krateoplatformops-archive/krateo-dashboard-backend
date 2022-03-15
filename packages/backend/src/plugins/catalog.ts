@@ -18,75 +18,35 @@ import { CatalogBuilder } from '@backstage/plugin-catalog-backend';
 import { ScaffolderEntitiesProcessor } from '@backstage/plugin-scaffolder-backend';
 import { Router } from 'express';
 import { PluginEnvironment } from '../types';
+import { Duration } from 'luxon';
+import { LdapOrgEntityProvider } from '@backstage/plugin-catalog-backend-module-ldap';
 import {
   defaultGroupTransformer,
   MicrosoftGraphOrgReaderProcessor,
 } from '@backstage/plugin-catalog-backend-module-msgraph';
-import {
-  LdapOrgReaderProcessor,
-  LdapOrgEntityProvider,
-  GroupConfig,
-  LdapVendor,
-} from '@backstage/plugin-catalog-backend-module-ldap';
-import { GroupEntity } from '@backstage/catalog-model';
-import { SearchEntry } from 'ldapjs';
-
-export async function myGroupTransformer(
-  vendor: LdapVendor,
-  config: GroupConfig,
-  group: SearchEntry,
-): Promise<GroupEntity | undefined> {
-  // Transformations may change namespace, change entity naming pattern, fill
-  // profile with more or other details...
-  console.log(`Transforming group ${group.dn}`);
-  // Create the group entity on your own, or wrap the default transformer
-  return await defaultGroupTransformer(vendor, config, group);
-}
 
 export default async function createPlugin(
   env: PluginEnvironment,
 ): Promise<Router> {
-  // const ldapEntityProvider = LdapOrgEntityProvider.fromConfig(env.config, {
-  //   id: 'custom-ldap',
-  //   // target needs to match the catalog.processors.ldapOrg.providers.target specified in app-config
-  //   target: 'ldap://localhost:10389',
-  //   logger: env.logger,
-  // });
-
   const builder = await CatalogBuilder.create(env);
-  // builder.addEntityProvider(ldapEntityProvider);
-
-  // You can change the refresh interval for the other catalog entries independently, or just leave the line below out to use the default refresh interval
-  // builder.setRefreshIntervalSeconds(100);
-
   builder.addProcessor(new ScaffolderEntitiesProcessor());
   builder.addProcessor(
     MicrosoftGraphOrgReaderProcessor.fromConfig(env.config, {
       logger: env.logger,
     }),
   );
-  builder.addProcessor(
-    LdapOrgReaderProcessor.fromConfig(env.config, {
-      logger: env.logger,
-      groupTransformer: myGroupTransformer,
-    }),
-  );
+  builder.addEntityProvider(
+      LdapOrgEntityProvider.fromConfig(env.config, {
+        id: 'our-ldap-master',
+        target: 'ldap://localhost:10389',
+        logger: env.logger,
+        schedule: env.scheduler.createScheduledTaskRunner({
+          frequency: Duration.fromObject({ minutes: 60 }),
+          timeout: Duration.fromObject({ minutes: 15 }),
+        }),
+      }),
+    );
   const { processingEngine, router } = await builder.build();
   await processingEngine.start();
-
-  // await env.scheduler.scheduleTask({
-  //   id: 'refresh_ldap',
-  //   // frequency sets how often you want to ingest users and groups from LDAP, in this case every 60 minutes
-  //   frequency: Duration.fromObject({ minutes: 60 }),
-  //   timeout: Duration.fromObject({ minutes: 15 }),
-  //   fn: async () => {
-  //     try {
-  //       await ldapEntityProvider.read();
-  //     } catch (error) {
-  //       env.logger.error(error);
-  //     }
-  //   },
-  // });
-
   return router;
 }

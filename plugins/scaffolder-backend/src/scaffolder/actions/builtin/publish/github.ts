@@ -13,36 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ScmIntegrationRegistry } from '@backstage/integration';
+import {
+  GithubCredentialsProvider,
+  ScmIntegrationRegistry,
+} from '@backstage/integration';
 import {
   enableBranchProtectionOnDefaultRepoBranch,
   initRepoAndPush,
 } from '../helpers';
-import { getRepoSourceDirectory } from './util';
+import { getRepoSourceDirectory, parseRepoUrl } from './util';
 import { createTemplateAction } from '../../createTemplateAction';
 import { Config } from '@backstage/config';
-import { OctokitProvider } from '../github/OctokitProvider';
-import { assertError } from '@backstage/errors';
+import { assertError, InputError } from '@backstage/errors';
+import { getOctokitOptions } from '../github/helpers';
+import { Octokit } from 'octokit';
 
-type Permission = 'pull' | 'push' | 'admin' | 'maintain' | 'triage';
-type Collaborator = { access: Permission; username: string };
-
+/**
+ * Creates a new action that initializes a git repository of the content in the workspace
+ * and publishes it to GitHub.
+ *
+ * @public
+ */
 export function createPublishGithubAction(options: {
   integrations: ScmIntegrationRegistry;
   config: Config;
+  githubCredentialsProvider?: GithubCredentialsProvider;
 }) {
-  const { integrations, config } = options;
-  const octokitProvider = new OctokitProvider(integrations);
+  const { integrations, config, githubCredentialsProvider } = options;
 
   return createTemplateAction<{
     repoUrl: string;
     description?: string;
     access?: string;
     defaultBranch?: string;
+    deleteBranchOnMerge?: boolean;
+    allowRebaseMerge?: boolean;
+    allowSquashMerge?: boolean;
+    allowMergeCommit?: boolean;
     sourcePath?: string;
     requireCodeOwnerReviews?: boolean;
-    repoVisibility: 'private' | 'internal' | 'public';
-    collaborators: Collaborator[];
+    repoVisibility?: 'private' | 'internal' | 'public';
+    collaborators?: Array<{
+      username: string;
+      access: 'pull' | 'push' | 'admin' | 'maintain' | 'triage';
+    }>;
+    token?: string;
     topics?: string[];
   }>({
     id: 'publish:github',
@@ -68,7 +83,8 @@ export function createPublishGithubAction(options: {
             type: 'string',
           },
           requireCodeOwnerReviews: {
-            title:
+            title: 'Require CODEOWNER Reviews?',
+            description:
               'Require an approved review in PR including files with a designated Code Owner',
             type: 'boolean',
           },
@@ -82,8 +98,29 @@ export function createPublishGithubAction(options: {
             type: 'string',
             description: `Sets the default branch on the repository. The default value is 'master'`,
           },
+          deleteBranchOnMerge: {
+            title: 'Delete Branch On Merge',
+            type: 'boolean',
+            description: `Delete the branch after merging the PR. The default value is 'false'`,
+          },
+          allowMergeCommit: {
+            title: 'Allow Merge Commits',
+            type: 'boolean',
+            description: `Allow merge commits. The default value is 'true'`,
+          },
+          allowSquashMerge: {
+            title: 'Allow Squash Merges',
+            type: 'boolean',
+            description: `Allow squash merges. The default value is 'true'`,
+          },
+          allowRebaseMerge: {
+            title: 'Allow Rebase Merges',
+            type: 'boolean',
+            description: `Allow rebase merges. The default value is 'true'`,
+          },
           sourcePath: {
-            title:
+            title: 'Source Path',
+            description:
               'Path within the workspace that will be used as the repository root. If omitted, the entire workspace will be published as the repository.',
             type: 'string',
           },
@@ -106,6 +143,11 @@ export function createPublishGithubAction(options: {
                 },
               },
             },
+          },
+          token: {
+            title: 'Authentication Token',
+            type: 'string',
+            description: 'The token to use for authorization to GitHub',
           },
           topics: {
             title: 'Topics',
@@ -138,37 +180,61 @@ export function createPublishGithubAction(options: {
         requireCodeOwnerReviews = false,
         repoVisibility = 'private',
         defaultBranch = 'master',
+        deleteBranchOnMerge = false,
+        allowMergeCommit = true,
+        allowSquashMerge = true,
+        allowRebaseMerge = true,
         collaborators,
         topics,
+        token: providedToken,
       } = ctx.input;
 
-      const { client, token, owner, repo } = await octokitProvider.getOctokit(
-        repoUrl,
-      );
+      const { owner, repo } = parseRepoUrl(repoUrl, integrations);
 
-      const user = await client.users.getByUsername({
+      if (!owner) {
+        throw new InputError('Invalid repository owner provided in repoUrl');
+      }
+
+      const octokitOptions = await getOctokitOptions({
+        integrations,
+        credentialsProvider: githubCredentialsProvider,
+        token: providedToken,
+        repoUrl,
+      });
+
+      const client = new Octokit(octokitOptions);
+
+      const user = await client.rest.users.getByUsername({
         username: owner,
       });
 
       const repoCreationPromise =
         user.data.type === 'Organization'
-          ? client.repos.createInOrg({
+          ? client.rest.repos.createInOrg({
               name: repo,
               org: owner,
               private: repoVisibility === 'private',
               visibility: repoVisibility,
               description: description,
+              delete_branch_on_merge: deleteBranchOnMerge,
+              allow_merge_commit: allowMergeCommit,
+              allow_squash_merge: allowSquashMerge,
+              allow_rebase_merge: allowRebaseMerge,
             })
-          : client.repos.createForAuthenticatedUser({
+          : client.rest.repos.createForAuthenticatedUser({
               name: repo,
               private: repoVisibility === 'private',
               description: description,
+              delete_branch_on_merge: deleteBranchOnMerge,
+              allow_merge_commit: allowMergeCommit,
+              allow_squash_merge: allowSquashMerge,
+              allow_rebase_merge: allowRebaseMerge,
             });
 
       const { data: newRepo } = await repoCreationPromise;
       if (access?.startsWith(`${owner}/`)) {
         const [, team] = access.split('/');
-        await client.teams.addOrUpdateRepoPermissionsInOrg({
+        await client.rest.teams.addOrUpdateRepoPermissionsInOrg({
           org: owner,
           team_slug: team,
           owner,
@@ -177,7 +243,7 @@ export function createPublishGithubAction(options: {
         });
         // No need to add access if it's the person who owns the personal account
       } else if (access && access !== owner) {
-        await client.repos.addCollaborator({
+        await client.rest.repos.addCollaborator({
           owner,
           repo,
           username: access,
@@ -191,7 +257,7 @@ export function createPublishGithubAction(options: {
           username: team_slug,
         } of collaborators) {
           try {
-            await client.teams.addOrUpdateRepoPermissionsInOrg({
+            await client.rest.teams.addOrUpdateRepoPermissionsInOrg({
               org: owner,
               team_slug,
               owner,
@@ -209,7 +275,7 @@ export function createPublishGithubAction(options: {
 
       if (topics) {
         try {
-          await client.repos.replaceAllTopics({
+          await client.rest.repos.replaceAllTopics({
             owner,
             repo,
             names: topics.map(t => t.toLowerCase()),
@@ -234,7 +300,7 @@ export function createPublishGithubAction(options: {
         defaultBranch,
         auth: {
           username: 'x-access-token',
-          password: token,
+          password: octokitOptions.auth,
         },
         logger: ctx.logger,
         commitMessage: config.getOptionalString(

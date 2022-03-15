@@ -19,6 +19,7 @@ import compression from 'compression';
 import cors from 'cors';
 import express, { Router, ErrorRequestHandler } from 'express';
 import helmet from 'helmet';
+import { ContentSecurityPolicyOptions } from 'helmet/dist/types/middlewares/content-security-policy';
 import * as http from 'http';
 import stoppable from 'stoppable';
 import { Logger } from 'winston';
@@ -43,19 +44,6 @@ import { createHttpServer, createHttpsServer } from './hostFactory';
 export const DEFAULT_PORT = 7007;
 // '' is express default, which listens to all interfaces
 const DEFAULT_HOST = '';
-// taken from the helmet source code - don't seem to be exported
-const DEFAULT_CSP = {
-  'default-src': ["'self'"],
-  'base-uri': ["'self'"],
-  'block-all-mixed-content': [],
-  'font-src': ["'self'", 'https:', 'data:'],
-  'frame-ancestors': ["'self'"],
-  'img-src': ["'self'", 'data:'],
-  'object-src': ["'none'"],
-  'script-src': ["'self'", "'unsafe-eval'"],
-  'script-src-attr': ["'none'"],
-  'style-src': ["'self'", 'https:', "'unsafe-inline'"],
-};
 
 export class ServiceBuilderImpl implements ServiceBuilder {
   private port: number | undefined;
@@ -227,8 +215,17 @@ export class ServiceBuilderImpl implements ServiceBuilder {
       httpsSettings: this.httpsSettings,
       helmetOptions: {
         contentSecurityPolicy: {
+          useDefaults: false,
           directives: applyCspDirectives(this.cspOptions),
         },
+        // These are all disabled in order to maintain backwards compatibility
+        // when bumping helmet v5. We can't enable these by default because
+        // there is no way for users to configure them.
+        // TODO(Rugvip): We should give control of this setup to consumers
+        crossOriginEmbedderPolicy: false,
+        crossOriginOpenerPolicy: false,
+        crossOriginResourcePolicy: false,
+        originAgentCluster: false,
       },
     };
   }
@@ -236,8 +233,18 @@ export class ServiceBuilderImpl implements ServiceBuilder {
 
 export function applyCspDirectives(
   directives: Record<string, string[] | false> | undefined,
-): CspOptions | undefined {
-  const result: CspOptions = { ...DEFAULT_CSP };
+): ContentSecurityPolicyOptions['directives'] {
+  const result: ContentSecurityPolicyOptions['directives'] =
+    helmet.contentSecurityPolicy.getDefaultDirectives();
+
+  // TODO(Rugvip): We currently use non-precompiled AJV for validation in the frontend, which uses eval.
+  //               It should be replaced by any other solution that doesn't require unsafe-eval.
+  result['script-src'] = ["'self'", "'unsafe-eval'"];
+
+  // TODO(Rugvip): This is removed so that we maintained backwards compatibility
+  //               when bumping to helmet v5, we could remove this as well as
+  //               skip setting `useDefaults: false` in the future.
+  delete result['form-action'];
 
   if (directives) {
     for (const [key, value] of Object.entries(directives)) {

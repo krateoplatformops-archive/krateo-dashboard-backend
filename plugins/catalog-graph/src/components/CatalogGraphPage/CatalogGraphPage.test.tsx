@@ -15,7 +15,11 @@
  */
 import { RELATION_HAS_PART, RELATION_PART_OF } from '@backstage/catalog-model';
 import { analyticsApiRef } from '@backstage/core-plugin-api';
-import { CatalogApi, catalogApiRef } from '@backstage/plugin-catalog-react';
+import {
+  CatalogApi,
+  catalogApiRef,
+  entityRouteRef,
+} from '@backstage/plugin-catalog-react';
 import {
   MockAnalyticsApi,
   renderInTestApp,
@@ -23,7 +27,6 @@ import {
 } from '@backstage/test-utils';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { catalogEntityRouteRef } from '../../routes';
 import { CatalogGraphPage } from './CatalogGraphPage';
 
 const navigate = jest.fn();
@@ -55,6 +58,7 @@ describe('<CatalogGraphPage/>', () => {
       relations: [
         {
           type: RELATION_PART_OF,
+          targetRef: 'b:d/e',
           target: {
             kind: 'b',
             namespace: 'd',
@@ -73,6 +77,7 @@ describe('<CatalogGraphPage/>', () => {
       relations: [
         {
           type: RELATION_HAS_PART,
+          targetRef: 'b:d/c',
           target: {
             kind: 'b',
             namespace: 'd',
@@ -83,15 +88,17 @@ describe('<CatalogGraphPage/>', () => {
     };
     catalog = {
       getEntities: jest.fn(),
-      getEntityByName: jest.fn(async n => (n.name === 'e' ? entityE : entityC)),
+      getEntityByRef: jest.fn(async (n: any) =>
+        n === 'b:d/e' ? entityE : entityC,
+      ),
       removeEntityByUid: jest.fn(),
       getLocationById: jest.fn(),
-      getOriginLocationByEntity: jest.fn(),
-      getLocationByEntity: jest.fn(),
+      getLocationByRef: jest.fn(),
       addLocation: jest.fn(),
       removeLocationById: jest.fn(),
       refreshEntity: jest.fn(),
       getEntityAncestors: jest.fn(),
+      getEntityFacets: jest.fn(),
     };
 
     wrapper = (
@@ -114,7 +121,7 @@ describe('<CatalogGraphPage/>', () => {
       wrapper,
       {
         mountedRoutes: {
-          '/entity/{kind}/{namespace}/{name}': catalogEntityRouteRef,
+          '/entity/{kind}/{namespace}/{name}': entityRouteRef,
         },
       },
     );
@@ -123,13 +130,13 @@ describe('<CatalogGraphPage/>', () => {
     expect(await findByText('b:d/c')).toBeInTheDocument();
     expect(await findByText('b:d/e')).toBeInTheDocument();
     expect(await findAllByTestId('node')).toHaveLength(2);
-    expect(catalog.getEntityByName).toBeCalledTimes(2);
+    expect(catalog.getEntityByRef).toBeCalledTimes(2);
   });
 
   test('should toggle filters', async () => {
     const { getByText, queryByText } = await renderInTestApp(wrapper, {
       mountedRoutes: {
-        '/entity/{kind}/{namespace}/{name}': catalogEntityRouteRef,
+        '/entity/{kind}/{namespace}/{name}': entityRouteRef,
       },
     });
 
@@ -145,7 +152,7 @@ describe('<CatalogGraphPage/>', () => {
       wrapper,
       {
         mountedRoutes: {
-          '/entity/{kind}/{namespace}/{name}': catalogEntityRouteRef,
+          '/entity/{kind}/{namespace}/{name}': entityRouteRef,
         },
       },
     );
@@ -160,7 +167,7 @@ describe('<CatalogGraphPage/>', () => {
   test('should navigate to entity', async () => {
     const { getByText, findAllByTestId } = await renderInTestApp(wrapper, {
       mountedRoutes: {
-        '/entity/{kind}/{namespace}/{name}': catalogEntityRouteRef,
+        '/entity/{kind}/{namespace}/{name}': entityRouteRef,
       },
     });
 
@@ -179,7 +186,7 @@ describe('<CatalogGraphPage/>', () => {
       </TestApiProvider>,
       {
         mountedRoutes: {
-          '/entity/{kind}/{namespace}/{name}': catalogEntityRouteRef,
+          '/entity/{kind}/{namespace}/{name}': entityRouteRef,
         },
       },
     );
@@ -202,7 +209,7 @@ describe('<CatalogGraphPage/>', () => {
       </TestApiProvider>,
       {
         mountedRoutes: {
-          '/entity/{kind}/{namespace}/{name}': catalogEntityRouteRef,
+          '/entity/{kind}/{namespace}/{name}': entityRouteRef,
         },
       },
     );

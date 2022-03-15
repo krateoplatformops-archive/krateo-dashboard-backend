@@ -20,14 +20,14 @@
  * @param {import('knex').Knex} knex
  */
 exports.up = async function up(knex) {
-  if (knex.client.config.client !== 'sqlite3') {
+  if (!knex.client.config.client.includes('sqlite3')) {
     // We actually just want to widen columns, but can't do that while a
     // view is dependent on them - so we just reconstruct it exactly as it was
     await knex.schema
       .raw('DROP VIEW location_update_log_latest;')
       .alterTable('location_update_log', table => {
-        table.text('message').alter();
-        table.text('entity_name').nullable().alter();
+        table.text('message').alter({ alterType: true });
+        table.text('entity_name').nullable().alter({ alterType: true });
       }).raw(`
         CREATE VIEW location_update_log_latest AS
         SELECT t1.* FROM location_update_log t1
@@ -49,12 +49,12 @@ exports.up = async function up(knex) {
  * @param {import('knex').Knex} knex
  */
 exports.down = async function down(knex) {
-  if (knex.client.config.client !== 'sqlite3') {
+  if (!knex.client.config.client.includes('sqlite3')) {
     await knex.schema
       .raw('DROP VIEW location_update_log_latest;')
       .alterTable('location_update_log', table => {
-        table.string('message').alter();
-        table.string('entity_name').nullable().alter();
+        table.string('message').alter({ alterType: true });
+        table.string('entity_name').nullable().alter({ alterType: true });
       }).raw(`
         CREATE VIEW location_update_log_latest AS
         SELECT t1.* FROM location_update_log t1

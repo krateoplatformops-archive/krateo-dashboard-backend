@@ -13,6 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import {
+  DEFAULT_NAMESPACE,
+  stringifyEntityRef,
+} from '@backstage/catalog-model';
 import express from 'express';
 import {
   OAuthAdapter,
@@ -133,9 +138,7 @@ export class OktaAuthProvider implements OAuthHandlers {
     });
   }
 
-  async handler(
-    req: express.Request,
-  ): Promise<{ response: OAuthResponse; refreshToken: string }> {
+  async handler(req: express.Request) {
     const { result, privateInfo } = await executeFrameHandlerStrategy<
       OAuthResult,
       PrivateInfo
@@ -147,28 +150,36 @@ export class OktaAuthProvider implements OAuthHandlers {
     };
   }
 
-  async refresh(req: OAuthRefreshRequest): Promise<OAuthResponse> {
-    const { accessToken, params } = await executeRefreshTokenStrategy(
-      this._strategy,
-      req.refreshToken,
-      req.scope,
-    );
+  async refresh(req: OAuthRefreshRequest) {
+    const { accessToken, refreshToken, params } =
+      await executeRefreshTokenStrategy(
+        this._strategy,
+        req.refreshToken,
+        req.scope,
+      );
 
     const fullProfile = await executeFetchUserProfileStrategy(
       this._strategy,
       accessToken,
     );
 
-    return this.handleResult({
-      fullProfile,
-      params,
-      accessToken,
-      refreshToken: req.refreshToken,
-    });
+    return {
+      response: await this.handleResult({
+        fullProfile,
+        params,
+        accessToken,
+      }),
+      refreshToken,
+    };
   }
 
   private async handleResult(result: OAuthResult) {
-    const { profile } = await this._authHandler(result);
+    const context = {
+      logger: this._logger,
+      catalogIdentityClient: this._catalogIdentityClient,
+      tokenIssuer: this._tokenIssuer,
+    };
+    const { profile } = await this._authHandler(result, context);
 
     const response: OAuthResponse = {
       providerInfo: {
@@ -186,11 +197,7 @@ export class OktaAuthProvider implements OAuthHandlers {
           result,
           profile,
         },
-        {
-          tokenIssuer: this._tokenIssuer,
-          catalogIdentityClient: this._catalogIdentityClient,
-          logger: this._logger,
-        },
+        context,
       );
     }
 
@@ -233,8 +240,17 @@ export const oktaDefaultSignInResolver: SignInResolver<OAuthResult> = async (
   // TODO(Rugvip): Hardcoded to the local part of the email for now
   const userId = profile.email.split('@')[0];
 
+  const entityRef = stringifyEntityRef({
+    kind: 'User',
+    namespace: DEFAULT_NAMESPACE,
+    name: userId,
+  });
+
   const token = await ctx.tokenIssuer.issueToken({
-    claims: { sub: userId, ent: [`user:default/${userId}`] },
+    claims: {
+      sub: entityRef,
+      ent: [entityRef],
+    },
   });
 
   return { id: userId, token };
@@ -266,6 +282,7 @@ export const createOktaProvider = (
     globalConfig,
     config,
     tokenIssuer,
+    tokenManager,
     catalogApi,
     logger,
   }) =>
@@ -273,7 +290,10 @@ export const createOktaProvider = (
       const clientId = envConfig.getString('clientId');
       const clientSecret = envConfig.getString('clientSecret');
       const audience = envConfig.getString('audience');
-      const callbackUrl = `${globalConfig.baseUrl}/${providerId}/handler/frame`;
+      const customCallbackUrl = envConfig.getOptionalString('callbackUrl');
+      const callbackUrl =
+        customCallbackUrl ||
+        `${globalConfig.baseUrl}/${providerId}/handler/frame`;
 
       // This is a safe assumption as `passport-okta-oauth` uses the audience
       // as the base for building the authorization, token, and user info URLs.
@@ -284,7 +304,7 @@ export const createOktaProvider = (
 
       const catalogIdentityClient = new CatalogIdentityClient({
         catalogApi,
-        tokenIssuer,
+        tokenManager,
       });
 
       const authHandler: AuthHandler<OAuthResult> = _options?.authHandler
@@ -319,6 +339,7 @@ export const createOktaProvider = (
         disableRefresh: false,
         providerId,
         tokenIssuer,
+        callbackUrl,
       });
     });
 };

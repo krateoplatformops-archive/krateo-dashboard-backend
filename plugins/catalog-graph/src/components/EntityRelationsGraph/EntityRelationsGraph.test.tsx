@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import {
   Entity,
   RELATION_HAS_PART,
   RELATION_OWNED_BY,
   RELATION_OWNER_OF,
   RELATION_PART_OF,
-  stringifyEntityRef,
 } from '@backstage/catalog-model';
 import { CatalogApi, catalogApiRef } from '@backstage/plugin-catalog-react';
 import { renderInTestApp, TestApiProvider } from '@backstage/test-utils';
@@ -54,6 +54,7 @@ describe('<EntityRelationsGraph/>', () => {
               name: 'a1',
               namespace: 'd',
             },
+            targetRef: 'k:d/a1',
             type: RELATION_OWNER_OF,
           },
           {
@@ -62,6 +63,7 @@ describe('<EntityRelationsGraph/>', () => {
               name: 'c1',
               namespace: 'd',
             },
+            targetRef: 'b:d/c1',
             type: RELATION_HAS_PART,
           },
         ],
@@ -80,6 +82,7 @@ describe('<EntityRelationsGraph/>', () => {
               name: 'c',
               namespace: 'd',
             },
+            targetRef: 'b:d/c',
             type: RELATION_OWNED_BY,
           },
           {
@@ -88,6 +91,7 @@ describe('<EntityRelationsGraph/>', () => {
               name: 'c1',
               namespace: 'd',
             },
+            targetRef: 'b:d/c1',
             type: RELATION_OWNED_BY,
           },
         ],
@@ -106,6 +110,7 @@ describe('<EntityRelationsGraph/>', () => {
               name: 'c',
               namespace: 'd',
             },
+            targetRef: 'b:d/c',
             type: RELATION_PART_OF,
           },
           {
@@ -114,6 +119,7 @@ describe('<EntityRelationsGraph/>', () => {
               name: 'a1',
               namespace: 'd',
             },
+            targetRef: 'k:d/a1',
             type: RELATION_OWNER_OF,
           },
           {
@@ -122,6 +128,7 @@ describe('<EntityRelationsGraph/>', () => {
               name: 'c2',
               namespace: 'd',
             },
+            targetRef: 'b:d/c2',
             type: RELATION_HAS_PART,
           },
         ],
@@ -140,6 +147,7 @@ describe('<EntityRelationsGraph/>', () => {
               name: 'c1',
               namespace: 'd',
             },
+            targetRef: 'b:d/c1',
             type: RELATION_PART_OF,
           },
         ],
@@ -147,15 +155,15 @@ describe('<EntityRelationsGraph/>', () => {
     };
     catalog = {
       getEntities: jest.fn(),
-      getEntityByName: jest.fn(async n => entities[stringifyEntityRef(n)]),
+      getEntityByRef: jest.fn(async n => entities[n as string]),
       removeEntityByUid: jest.fn(),
       getLocationById: jest.fn(),
-      getOriginLocationByEntity: jest.fn(),
-      getLocationByEntity: jest.fn(),
+      getLocationByRef: jest.fn(),
       addLocation: jest.fn(),
       removeLocationById: jest.fn(),
       refreshEntity: jest.fn(),
       getEntityAncestors: jest.fn(),
+      getEntityFacets: jest.fn(),
     };
 
     Wrapper = ({ children }) => (
@@ -170,7 +178,7 @@ describe('<EntityRelationsGraph/>', () => {
   });
 
   test('renders a single node without exploding', async () => {
-    catalog.getEntityByName.mockResolvedValue({
+    catalog.getEntityByRef.mockResolvedValue({
       apiVersion: 'a',
       kind: 'b',
       metadata: {
@@ -190,11 +198,11 @@ describe('<EntityRelationsGraph/>', () => {
 
     expect(await findByText('b:d/c')).toBeInTheDocument();
     expect(await findAllByTestId('node')).toHaveLength(1);
-    expect(catalog.getEntityByName).toBeCalledTimes(1);
+    expect(catalog.getEntityByRef).toBeCalledTimes(1);
   });
 
   test('renders a progress indicator while loading', async () => {
-    catalog.getEntityByName.mockImplementation(() => new Promise(() => {}));
+    catalog.getEntityByRef.mockImplementation(() => new Promise(() => {}));
 
     const { findByRole } = await renderInTestApp(
       <Wrapper>
@@ -205,12 +213,12 @@ describe('<EntityRelationsGraph/>', () => {
     );
 
     expect(await findByRole('progressbar')).toBeInTheDocument();
-    expect(catalog.getEntityByName).toBeCalledTimes(1);
+    expect(catalog.getEntityByRef).toBeCalledTimes(1);
   });
 
   test('does not explode if an entity is missing', async () => {
-    catalog.getEntityByName.mockImplementation(async n => {
-      if (n.name === 'c') {
+    catalog.getEntityByRef.mockImplementation(async (n: any) => {
+      if (n === 'b:d/c') {
         return {
           apiVersion: 'a',
           kind: 'b',
@@ -225,6 +233,7 @@ describe('<EntityRelationsGraph/>', () => {
                 name: 'some-component',
                 namespace: 'default',
               },
+              targetRef: 'component:default/some-component',
               type: RELATION_OWNER_OF,
             },
           ],
@@ -244,7 +253,7 @@ describe('<EntityRelationsGraph/>', () => {
 
     expect(await findByText('b:d/c')).toBeInTheDocument();
     expect(await findAllByTestId('node')).toHaveLength(1);
-    expect(catalog.getEntityByName).toBeCalledTimes(2);
+    expect(catalog.getEntityByRef).toBeCalledTimes(2);
   });
 
   test('renders at max depth of one', async () => {
@@ -267,7 +276,7 @@ describe('<EntityRelationsGraph/>', () => {
     expect(await findAllByText('hasPart')).toHaveLength(1);
     expect(await findAllByTestId('label')).toHaveLength(2);
 
-    expect(catalog.getEntityByName).toBeCalledTimes(3);
+    expect(catalog.getEntityByRef).toBeCalledTimes(3);
   });
 
   test('renders simplied graph at full depth', async () => {
@@ -292,7 +301,7 @@ describe('<EntityRelationsGraph/>', () => {
     expect(await findAllByText('hasPart')).toHaveLength(2);
     expect(await findAllByTestId('label')).toHaveLength(3);
 
-    expect(catalog.getEntityByName).toBeCalledTimes(4);
+    expect(catalog.getEntityByRef).toBeCalledTimes(4);
   });
 
   test('renders full graph at full depth', async () => {
@@ -319,7 +328,7 @@ describe('<EntityRelationsGraph/>', () => {
     expect(await findAllByText('partOf')).toHaveLength(2);
     expect(await findAllByTestId('label')).toHaveLength(8);
 
-    expect(catalog.getEntityByName).toBeCalledTimes(4);
+    expect(catalog.getEntityByRef).toBeCalledTimes(4);
   });
 
   test('renders full graph at full depth with merged relations', async () => {
@@ -344,7 +353,7 @@ describe('<EntityRelationsGraph/>', () => {
     expect(await findAllByText('hasPart')).toHaveLength(2);
     expect(await findAllByTestId('label')).toHaveLength(4);
 
-    expect(catalog.getEntityByName).toBeCalledTimes(4);
+    expect(catalog.getEntityByRef).toBeCalledTimes(4);
   });
 
   test('renders a graph with multiple root nodes', async () => {
@@ -370,7 +379,7 @@ describe('<EntityRelationsGraph/>', () => {
     expect(await findAllByText('partOf')).toHaveLength(2);
     expect(await findAllByTestId('label')).toHaveLength(3);
 
-    expect(catalog.getEntityByName).toBeCalledTimes(4);
+    expect(catalog.getEntityByRef).toBeCalledTimes(4);
   });
 
   test('renders a graph with filtered kinds and relations', async () => {
@@ -392,7 +401,7 @@ describe('<EntityRelationsGraph/>', () => {
     expect(await findAllByText('ownerOf')).toHaveLength(1);
     expect(await findAllByTestId('label')).toHaveLength(1);
 
-    expect(catalog.getEntityByName).toBeCalledTimes(2);
+    expect(catalog.getEntityByRef).toBeCalledTimes(2);
   });
 
   test('handle clicks on a node', async () => {

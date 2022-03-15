@@ -15,7 +15,12 @@
  */
 
 import express from 'express';
-import { verifyNonce, encodeState, readState } from './helpers';
+import {
+  verifyNonce,
+  encodeState,
+  readState,
+  defaultCookieConfigurer,
+} from './helpers';
 
 describe('OAuthProvider Utils', () => {
   describe('encodeState', () => {
@@ -102,6 +107,48 @@ describe('OAuthProvider Utils', () => {
       expect(() => {
         verifyNonce(mockRequest, 'providera');
       }).not.toThrow();
+    });
+  });
+
+  describe('defaultCookieConfigurer', () => {
+    it('should set the correct domain and path for a base url', () => {
+      expect(
+        defaultCookieConfigurer({
+          baseUrl: '',
+          providerId: 'test-provider',
+          callbackUrl: 'http://domain.org/auth',
+        }),
+      ).toMatchObject({
+        domain: 'domain.org',
+        path: '/auth/test-provider',
+        secure: false,
+      });
+    });
+
+    it('should set the correct domain and path for a url containing a frame handler', () => {
+      expect(
+        defaultCookieConfigurer({
+          baseUrl: '',
+          providerId: 'test-provider',
+          callbackUrl: 'http://domain.org/auth/test-provider/handler/frame',
+        }),
+      ).toMatchObject({
+        domain: 'domain.org',
+        path: '/auth/test-provider',
+        secure: false,
+      });
+    });
+
+    it('should set the secure flag if url is using https', () => {
+      expect(
+        defaultCookieConfigurer({
+          baseUrl: '',
+          providerId: 'test-provider',
+          callbackUrl: 'https://domain.org/auth',
+        }),
+      ).toMatchObject({
+        secure: true,
+      });
     });
   });
 });

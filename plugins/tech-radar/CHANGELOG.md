@@ -1,5 +1,123 @@
 # @backstage/plugin-tech-radar
 
+## 0.5.9
+
+### Patch Changes
+
+- bae72d6f4d: Tech Radar Ring names are now coloured from theme via theme.palette.text.primary (instead of a hard coded colour)
+- Updated dependencies
+  - @backstage/core-components@0.9.1
+
+## 0.5.9-next.0
+
+### Patch Changes
+
+- bae72d6f4d: Tech Radar Ring names are now coloured from theme via theme.palette.text.primary (instead of a hard coded colour)
+- Updated dependencies
+  - @backstage/core-components@0.9.1-next.0
+
+## 0.5.8
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.9.0
+  - @backstage/core-plugin-api@0.8.0
+
+## 0.5.7
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.10
+  - @backstage/core-plugin-api@0.7.0
+
+## 0.5.6
+
+### Patch Changes
+
+- 1ed305728b: Bump `node-fetch` to version 2.6.7 and `cross-fetch` to version 3.1.5
+- c77c5c7eb6: Added `backstage.role` to `package.json`
+- Updated dependencies
+  - @backstage/core-components@0.8.9
+  - @backstage/core-plugin-api@0.6.1
+  - @backstage/theme@0.2.15
+
+## 0.5.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.8
+
+## 0.5.5-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.8-next.0
+
+## 0.5.4
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.7
+
+## 0.5.4-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.7-next.0
+
+## 0.5.3
+
+### Patch Changes
+
+- 021bba18c4: Update readme
+- Updated dependencies
+  - @backstage/core-components@0.8.5
+  - @backstage/core-plugin-api@0.6.0
+
+## 0.5.3-next.0
+
+### Patch Changes
+
+- 021bba18c4: Update readme
+- Updated dependencies
+  - @backstage/core-components@0.8.5-next.0
+  - @backstage/core-plugin-api@0.6.0-next.0
+
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.8.4
+  - @backstage/core-plugin-api@0.5.0
+
+## 0.5.1
+
+### Patch Changes
+
+- 4ce51ab0f1: Internal refactor of the `react-use` imports to use `react-use/lib/*` instead.
+- Updated dependencies
+  - @backstage/core-plugin-api@0.4.1
+  - @backstage/core-components@0.8.3
+
+## 0.5.0
+
+### Minor Changes
+
+- 11b7761914: Add new property to enable open links in a new window/tab
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-plugin-api@0.4.0
+  - @backstage/core-components@0.8.2
+
 ## 0.4.13
 
 ### Patch Changes

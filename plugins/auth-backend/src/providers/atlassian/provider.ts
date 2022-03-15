@@ -107,9 +107,7 @@ export class AtlassianAuthProvider implements OAuthHandlers {
     });
   }
 
-  async handler(
-    req: express.Request,
-  ): Promise<{ response: OAuthResponse; refreshToken: string }> {
+  async handler(req: express.Request) {
     const { result } = await executeFrameHandlerStrategy<OAuthResult>(
       req,
       this._strategy,
@@ -117,18 +115,22 @@ export class AtlassianAuthProvider implements OAuthHandlers {
 
     return {
       response: await this.handleResult(result),
-      refreshToken: result.refreshToken ?? '',
+      refreshToken: result.refreshToken,
     };
   }
 
   private async handleResult(result: OAuthResult): Promise<OAuthResponse> {
-    const { profile } = await this.authHandler(result);
+    const context = {
+      logger: this.logger,
+      catalogIdentityClient: this.catalogIdentityClient,
+      tokenIssuer: this.tokenIssuer,
+    };
+    const { profile } = await this.authHandler(result, context);
 
     const response: OAuthResponse = {
       providerInfo: {
         idToken: result.params.id_token,
         accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
         scope: result.params.scope,
         expiresInSeconds: result.params.expires_in,
       },
@@ -141,39 +143,34 @@ export class AtlassianAuthProvider implements OAuthHandlers {
           result,
           profile,
         },
-        {
-          tokenIssuer: this.tokenIssuer,
-          catalogIdentityClient: this.catalogIdentityClient,
-          logger: this.logger,
-        },
+        context,
       );
     }
 
     return response;
   }
 
-  async refresh(req: OAuthRefreshRequest): Promise<OAuthResponse> {
-    const {
-      accessToken,
-      params,
-      refreshToken: newRefreshToken,
-    } = await executeRefreshTokenStrategy(
-      this._strategy,
-      req.refreshToken,
-      req.scope,
-    );
+  async refresh(req: OAuthRefreshRequest) {
+    const { accessToken, params, refreshToken } =
+      await executeRefreshTokenStrategy(
+        this._strategy,
+        req.refreshToken,
+        req.scope,
+      );
 
     const fullProfile = await executeFetchUserProfileStrategy(
       this._strategy,
       accessToken,
     );
 
-    return this.handleResult({
-      fullProfile,
-      params,
-      accessToken,
-      refreshToken: newRefreshToken,
-    });
+    return {
+      response: await this.handleResult({
+        fullProfile,
+        params,
+        accessToken,
+      }),
+      refreshToken,
+    };
   }
 }
 
@@ -200,6 +197,7 @@ export const createAtlassianProvider = (
     globalConfig,
     config,
     tokenIssuer,
+    tokenManager,
     catalogApi,
     logger,
   }) =>
@@ -207,11 +205,14 @@ export const createAtlassianProvider = (
       const clientId = envConfig.getString('clientId');
       const clientSecret = envConfig.getString('clientSecret');
       const scopes = envConfig.getString('scopes');
-      const callbackUrl = `${globalConfig.baseUrl}/${providerId}/handler/frame`;
+      const customCallbackUrl = envConfig.getOptionalString('callbackUrl');
+      const callbackUrl =
+        customCallbackUrl ||
+        `${globalConfig.baseUrl}/${providerId}/handler/frame`;
 
       const catalogIdentityClient = new CatalogIdentityClient({
         catalogApi,
-        tokenIssuer,
+        tokenManager,
       });
 
       const authHandler: AuthHandler<OAuthResult> =
@@ -230,9 +231,9 @@ export const createAtlassianProvider = (
       });
 
       return OAuthAdapter.fromConfig(globalConfig, provider, {
-        disableRefresh: true,
         providerId,
         tokenIssuer,
+        callbackUrl,
       });
     });
 };

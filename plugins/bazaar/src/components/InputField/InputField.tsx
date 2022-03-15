@@ -15,17 +15,22 @@
  */
 
 import React from 'react';
-import { Controller, Control, FieldError } from 'react-hook-form';
+import {
+  Controller,
+  Control,
+  FieldError,
+  ValidationRule,
+} from 'react-hook-form';
 import { TextField } from '@material-ui/core';
 import { FormValues } from '../../types';
 
 type Rules = {
   required: boolean;
-  pattern?: any;
+  pattern?: ValidationRule<RegExp> | undefined;
 };
 
 type Props = {
-  inputType: 'announcement' | 'community' | 'responsible';
+  inputType: 'description' | 'community' | 'responsible' | 'name';
   error?: FieldError | undefined;
   control: Control<FormValues, object>;
   helperText?: string;

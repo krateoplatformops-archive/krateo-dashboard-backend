@@ -5,9 +5,43 @@
 ```ts
 import { Entity } from '@backstage/catalog-model';
 import { JsonObject } from '@backstage/types';
-import { JSONSchema } from '@backstage/catalog-model';
+import { JsonValue } from '@backstage/types';
+import { KindValidator } from '@backstage/catalog-model';
 
-// @public (undocumented)
+// @public
+export type TaskSpec = TaskSpecV1beta3;
+
+// @public
+export interface TaskSpecV1beta3 {
+  // (undocumented)
+  apiVersion: 'scaffolder.backstage.io/v1beta3';
+  // (undocumented)
+  output: {
+    [name: string]: JsonValue;
+  };
+  // (undocumented)
+  parameters: JsonObject;
+  // (undocumented)
+  steps: TaskStep[];
+  // (undocumented)
+  templateInfo?: TemplateInfo;
+}
+
+// @public
+export interface TaskStep {
+  // (undocumented)
+  action: string;
+  // (undocumented)
+  id: string;
+  // (undocumented)
+  if?: string | boolean;
+  // (undocumented)
+  input?: JsonObject;
+  // (undocumented)
+  name: string;
+}
+
+// @public
 export interface TemplateEntityV1beta3 extends Entity {
   // (undocumented)
   apiVersion: 'scaffolder.backstage.io/v1beta3';
@@ -31,6 +65,12 @@ export interface TemplateEntityV1beta3 extends Entity {
   };
 }
 
-// @public (undocumented)
-export const templateEntityV1beta3Schema: JSONSchema;
+// @public
+export const templateEntityV1beta3Validator: KindValidator;
+
+// @public
+export type TemplateInfo = {
+  entityRef: string;
+  baseUrl?: string;
+};
 ```

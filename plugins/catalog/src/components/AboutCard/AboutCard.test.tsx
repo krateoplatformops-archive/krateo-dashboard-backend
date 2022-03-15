@@ -38,10 +38,14 @@ describe('<AboutCard />', () => {
     getEntityByName: jest.fn(),
     getEntities: jest.fn(),
     addLocation: jest.fn(),
-    getLocationByEntity: jest.fn(),
+    getLocationByRef: jest.fn(),
     removeEntityByUid: jest.fn(),
     refreshEntity: jest.fn(),
   } as any;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   it('renders info', async () => {
     const entity = {
@@ -59,6 +63,7 @@ describe('<AboutCard />', () => {
       relations: [
         {
           type: RELATION_OWNED_BY,
+          targetRef: 'user:default/guest',
           target: {
             kind: 'user',
             name: 'guest',
@@ -248,14 +253,16 @@ describe('<AboutCard />', () => {
     expect(getByText('View Source').closest('a')).not.toHaveAttribute('href');
   });
 
-  it('triggers a refresh', async () => {
+  it.each([
+    'url:https://backstage.io/catalog-info.yaml',
+    'file:../../catalog-info.yaml',
+  ])('triggers a refresh for %s', async location => {
     const entity = {
       apiVersion: 'v1',
       kind: 'Component',
       metadata: {
         annotations: {
-          'backstage.io/managed-by-location':
-            'url:https://backstage.io/catalog-info.yaml',
+          'backstage.io/managed-by-location': location,
         },
         name: 'software',
       },
@@ -298,7 +305,7 @@ describe('<AboutCard />', () => {
     );
   });
 
-  it('should not render refresh button if the location is not an url', async () => {
+  it('should not render refresh button if the location is not an url or file', async () => {
     const entity = {
       apiVersion: 'v1',
       kind: 'Component',

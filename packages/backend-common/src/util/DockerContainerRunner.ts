@@ -24,7 +24,11 @@ export type UserOptions = {
   User?: string;
 };
 
-/** @public */
+/**
+ * A {@link ContainerRunner} for Docker containers.
+ *
+ * @public
+ */
 export class DockerContainerRunner implements ContainerRunner {
   private readonly dockerClient: Docker;
 
@@ -101,6 +105,7 @@ export class DockerContainerRunner implements ContainerRunner {
       await this.dockerClient.run(imageName, args, logStream, {
         Volumes,
         HostConfig: {
+          AutoRemove: true,
           Binds,
         },
         ...(workingDir ? { WorkingDir: workingDir } : {}),

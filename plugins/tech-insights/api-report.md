@@ -5,11 +5,65 @@
 ```ts
 /// <reference types="react" />
 
+import { ApiRef } from '@backstage/core-plugin-api';
 import { BackstagePlugin } from '@backstage/core-plugin-api';
+import { BulkCheckResponse } from '@backstage/plugin-tech-insights-common';
+import { CheckResult } from '@backstage/plugin-tech-insights-common';
+import { CompoundEntityRef } from '@backstage/catalog-model';
+import { default as React_2 } from 'react';
 import { RouteRef } from '@backstage/core-plugin-api';
 
+// @public
+export type Check = {
+  id: string;
+  type: string;
+  name: string;
+  description: string;
+  factIds: string[];
+};
+
+// @public
+export type CheckResultRenderer = {
+  type: string;
+  title: string;
+  description: string;
+  component: React_2.ReactElement;
+};
+
 // @public (undocumented)
-export const EntityTechInsightsScorecardContent: () => JSX.Element;
+export const EntityTechInsightsScorecardContent: ({
+  title,
+  description,
+}: {
+  title?: string | undefined;
+  description?: string | undefined;
+}) => JSX.Element;
+
+// @public
+export interface TechInsightsApi {
+  // (undocumented)
+  getAllChecks(): Promise<Check[]>;
+  // (undocumented)
+  getScorecardsDefinition: (
+    type: string,
+    value: CheckResult[],
+    title?: string,
+    description?: string,
+  ) => CheckResultRenderer | undefined;
+  // (undocumented)
+  runBulkChecks(
+    entities: CompoundEntityRef[],
+    checks?: Check[],
+  ): Promise<BulkCheckResponse>;
+  // (undocumented)
+  runChecks(
+    entityParams: CompoundEntityRef,
+    checks?: Check[],
+  ): Promise<CheckResult[]>;
+}
+
+// @public
+export const techInsightsApiRef: ApiRef<TechInsightsApi>;
 
 // @public (undocumented)
 export const techInsightsPlugin: BackstagePlugin<
