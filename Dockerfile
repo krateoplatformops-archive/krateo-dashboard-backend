@@ -31,6 +31,8 @@ COPY . .
 
 RUN yarn
 
+RUN chmod -R 777 /usr/src/app/packages/backend/dist
+
 # This will copy the contents of the dist-workspace when running the build-image command.
 # Do not use this Dockerfile outside of that command, as it will copy in the source code instead.
 
