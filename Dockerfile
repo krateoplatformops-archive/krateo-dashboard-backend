@@ -1,8 +1,11 @@
 # FROM node:14-buster
-FROM bitnami/node
+FROM bitnami/node:16
 
 # WORKDIR /app
 WORKDIR /usr/src/app
+
+RUN apt update
+RUN apt install -y mkdocs make zlib1g-dev
 
 # (workaround) Install cookiecutter and mkdocs to avoid the need to run docker in docker
 RUN cd /tmp && curl -O https://www.python.org/ftp/python/3.8.2/Python-3.8.2.tar.xz && \
@@ -11,9 +14,6 @@ RUN cd /tmp && curl -O https://www.python.org/ftp/python/3.8.2/Python-3.8.2.tar.
     ./configure --enable-optimizations && \
     make -j 4 && \
     make altinstall
-
-RUN apt update
-RUN apt install -y mkdocs make
 
 RUN pip3.8 install mkdocs-techdocs-core
 
