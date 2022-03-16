@@ -1,6 +1,8 @@
-FROM node:14-buster
+# FROM node:14-buster
+FROM bitnami/node
 
-WORKDIR /app
+# WORKDIR /app
+WORKDIR /usr/src/app
 
 # (workaround) Install cookiecutter and mkdocs to avoid the need to run docker in docker
 RUN cd /tmp && curl -O https://www.python.org/ftp/python/3.8.2/Python-3.8.2.tar.xz && \
