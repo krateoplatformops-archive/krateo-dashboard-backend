@@ -46,15 +46,12 @@ export const creategitHubProtectionAction = () => {
         },
       };
 
-      // ctx.logger.info(JSON.stringify(config, null, 2));
-
-      // const fullUrl = `https://${ctx.input.host}`;
-      // const url = new URL(fullUrl);
-      // const owner = url.searchParams.get('owner');
-      // const repo = url.searchParams.get('repo');
-
-      // Get GitHub repository Id
       ctx.logger.info(`Setting GitHub branch protection`);
+
+      const fullUrl = `https://${ctx.input.host}`;
+      const url = new URL(fullUrl);
+      const owner = url.searchParams.get('owner');
+      const repo = url.searchParams.get('repo');
 
       await axiosInstance.delete(
         `https://api.github.com/repos/${owner}/${repo}/branches/main/protection`,

@@ -136,19 +136,19 @@ export const createCloudbeesInsielAction = (options: { config: Config }) => {
       // app
       //  data: Buffer.from(fs.readFileSync(appXml)),
 
-      ctx.logger.info(
-        `${JSON.stringify(
-          {
-            Accept: '*/*',
-            'Content-Type': `text/xml`,
-            Authorization: `Basic ${Buffer.from(token).toString('base64')}`,
-          },
-          null,
-          4,
-        )}`,
-      );
+      // ctx.logger.info(
+      //   `${JSON.stringify(
+      //     {
+      //       Accept: '*/*',
+      //       'Content-Type': `text/xml`,
+      //       Authorization: `Basic ${Buffer.from(token).toString('base64')}`,
+      //     },
+      //     null,
+      //     4,
+      //   )}`,
+      // );
 
-      ctx.logger.info(`token: ${token}`);
+      // ctx.logger.info(`token: ${token}`);
       ctx.logger.info(
         `url: ${cb.baseUrl}/createItem?name=${ctx.input.component_id}`,
       );

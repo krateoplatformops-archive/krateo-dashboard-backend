@@ -34,7 +34,7 @@ export const createSonarQubeAction = () => {
             type: 'string',
             title: 'Alm',
             description: 'Alm Settings',
-          }
+          },
         },
       },
     },
@@ -68,9 +68,9 @@ export const createSonarQubeAction = () => {
       configData.append('organization', owner);
       configData.append('repositoryKey', `${owner}/${repo}`);
 
-      ctx.logger.info(`${process.env.SONARQUBE_URL}/api/alm_integrations/import_github_project`)
-      ctx.logger.info(JSON.stringify(config))
-      ctx.logger.info(configData)
+      // ctx.logger.info(`${process.env.SONARQUBE_URL}/api/alm_integrations/import_github_project`)
+      // ctx.logger.info(JSON.stringify(config))
+      // ctx.logger.info(configData)
 
       await axiosInstance.post(
         `${process.env.SONARQUBE_URL}/api/alm_integrations/import_github_project`,

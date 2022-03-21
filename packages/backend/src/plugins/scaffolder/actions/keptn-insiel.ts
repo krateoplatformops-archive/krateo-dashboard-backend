@@ -111,11 +111,11 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
       const projectUrl = `${target}/project`;
       const serviceUrl = `${target}/project/${prjName}/service`;
 
-      ctx.logger.info(`Headers: ${JSON.stringify(headers, null, 4)}`);
+      // ctx.logger.info(`Headers: ${JSON.stringify(headers, null, 4)}`);
 
       ctx.logger.info(`Creating Project`);
       ctx.logger.info(`Url: ${projectUrl}`);
-      ctx.logger.info(`Data: ${JSON.stringify(projectData, null, 4)}`);
+      // ctx.logger.info(`Data: ${JSON.stringify(projectData, null, 4)}`);
       await axiosInstance({
         method: 'post',
         url: projectUrl,
@@ -128,7 +128,7 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
           // create service
           ctx.logger.info(`Creating Service`);
           ctx.logger.info(`Url: ${serviceUrl}`);
-          ctx.logger.info(`Data: ${JSON.stringify(serviceData, null, 4)}`);
+          // ctx.logger.info(`Data: ${JSON.stringify(serviceData, null, 4)}`);
           await axiosInstance({
             method: 'post',
             url: serviceUrl,
