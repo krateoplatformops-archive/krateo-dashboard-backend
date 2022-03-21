@@ -162,6 +162,11 @@ export async function createRouter(
     })
     .post('/v2/tasks', async (req, res) => {
       const templateRef: string = req.body.templateRef;
+
+      console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+      console.log(templateRef);
+      console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+
       const { kind, namespace, name } = parseEntityRef(templateRef, {
         defaultKind: 'template',
       });

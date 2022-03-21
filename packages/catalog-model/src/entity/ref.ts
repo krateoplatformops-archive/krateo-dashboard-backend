@@ -94,8 +94,11 @@ export function parseEntityRef(
     defaultNamespace?: string;
   },
 ): CompoundEntityRef {
+  // console.log('#######################');
+  // console.log(ref);
+  // console.log('#######################');
   if (!ref) {
-    throw new Error(`Entity reference must not be empty`);
+    throw new Error(`Entity reference must not be empty (got "${ref}")`);
   }
 
   const defaultKind = context?.defaultKind;

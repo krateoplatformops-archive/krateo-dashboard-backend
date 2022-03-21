@@ -1,3 +1,4 @@
+/* eslint-disable prefer-template */
 /*
  * Copyright 2022 The Backstage Authors
  *
@@ -16,6 +17,7 @@
 
 import { createTemplateAction } from '@backstage/plugin-scaffolder-backend';
 import { resolveSafeChildPath } from '@backstage/backend-common';
+
 const git = require('isomorphic-git');
 const http = require('isomorphic-git/http/node');
 const fs = require('fs');
@@ -28,11 +30,13 @@ const util = require('util');
 const getAllFiles = (dirPath: string, arrayOfFiles: any[] | null) => {
   const files = fs.readdirSync(dirPath);
 
+  // eslint-disable-next-line no-param-reassign
   arrayOfFiles = arrayOfFiles || [];
 
   files.forEach((file: string) => {
     if (file !== '.git') {
       if (fs.statSync(dirPath + '/' + file).isDirectory()) {
+        // eslint-disable-next-line no-param-reassign
         arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles);
       } else {
         arrayOfFiles.push(path.join(dirPath, '/', file));
@@ -181,23 +185,25 @@ export const createRoInsielAction = () => {
         url: `${repoURL}-hc.git`,
       });
       ctx.logger.info(`Add remote ${repoURL}-hc.git`);
-      await git.push({
-        fs,
-        http,
-        dir: helmDir,
-        remote: 'origin',
-        ref: 'main',
-        onAuth: () => ({ username: process.env.GITHUB_TOKEN }),
-        onProgress: (state: any) => {
-          try {
-            ctx.logger.info(`Pushing ${state.phase}`);
-          } catch (e) {
-            ctx.logger.error(e);
-          }
-        }
-      }).catch((err: any) => {
-        ctx.logger.error(`❌ Push progress failed: ${err}`);
-      })
+      await git
+        .push({
+          fs,
+          http,
+          dir: helmDir,
+          remote: 'origin',
+          ref: 'main',
+          onAuth: () => ({ username: process.env.GITHUB_TOKEN }),
+          onProgress: (state: any) => {
+            try {
+              ctx.logger.info(`Pushing ${state.phase}`);
+            } catch (e) {
+              ctx.logger.error(e);
+            }
+          },
+        })
+        .catch((err: any) => {
+          ctx.logger.error(`❌ Push progress failed: ${err}`);
+        });
       ctx.logger.info(`Push`);
 
       ctx.logger.info(`Well done, pushed successfully!`);

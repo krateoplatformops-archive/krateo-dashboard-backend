@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { Entity } from '@backstage/catalog-model';
+// import { Entity } from '@backstage/catalog-model';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { useEntity } from '@backstage/plugin-catalog-react';
 import {
   CardContent,
@@ -83,9 +84,9 @@ export const Content = () => {
   const identity = useApi(identityApiRef);
 
   const loadData = async () => {
-    console.log('###############################');
-    console.log(await identity.getProfileInfo());
-    console.log('###############################');
+    // console.log('###############################');
+    // console.log(await identity.getProfileInfo());
+    // console.log('###############################');
     setLoading(true);
     await keptnApi.getSequence(projectTitle, { pageSize: '10' }).then(res => {
       setLoading(false);
@@ -130,13 +131,13 @@ export const Content = () => {
           !loading && (
             <React.Fragment>
               {/* {profile?.email === 'mauro.sala@kiratech.it' && ( */}
-                <IconButton
-                  aria-label="delivery"
-                  onClick={handleOpen}
-                  className={classes.syncButton}
-                >
-                  <ArrowUpwardTwoTone />
-                </IconButton>
+              <IconButton
+                aria-label="delivery"
+                onClick={handleOpen}
+                className={classes.syncButton}
+              >
+                <ArrowUpwardTwoTone />
+              </IconButton>
               {/* )} */}
               <IconButton
                 aria-label="settings"

@@ -16,11 +16,13 @@
 import { createTemplateAction } from '@backstage/plugin-scaffolder-backend';
 import { resolveSafeChildPath } from '@backstage/backend-common';
 import { AppConfig, Config, ConfigReader } from '@backstage/config';
+
 const git = require('isomorphic-git');
 const http = require('isomorphic-git/http/node');
 const fs = require('fs');
 const path = require('path');
 const nunjucks = require('nunjucks');
+
 import axios from 'axios';
 import * as https from 'https';
 import { v4 as uuidv4 } from 'uuid';
@@ -60,7 +62,7 @@ export const createCloudbeesInsielAction = (options: { config: Config }) => {
             type: 'string',
             title: 'GitHub Url',
             description: 'GitHub Url',
-          }
+          },
         },
       },
     },
@@ -72,7 +74,7 @@ export const createCloudbeesInsielAction = (options: { config: Config }) => {
       const base = url.origin;
       const repoURL = `${base}/${owner}/${repo}`;
 
-      const templateUrl = ctx.baseUrl.replace('/tree/main/', '');
+      const templateUrl = ctx.templateInfo?.baseUrl.replace('/tree/main/', '');
 
       const workDir = await ctx.createTemporaryDirectory();
       const cbDir = resolveSafeChildPath(workDir, 'cloudbees');
@@ -126,22 +128,30 @@ export const createCloudbeesInsielAction = (options: { config: Config }) => {
           rejectUnauthorized: false,
         }),
       });
-      
+
       const instances = config.get('jenkins.instances');
       const cb = instances.find(i => i.name === ctx.input.masterName);
-      
+
       const token = `${cb.username}:${cb.apiKey}`;
       // app
       //  data: Buffer.from(fs.readFileSync(appXml)),
-      
-      ctx.logger.info(`${JSON.stringify({
-        Accept: '*/*',
-        'Content-Type': `text/xml`,
-        Authorization: `Basic ${Buffer.from(token).toString('base64')}`,
-      }, null, 4)}`);
-      
+
+      ctx.logger.info(
+        `${JSON.stringify(
+          {
+            Accept: '*/*',
+            'Content-Type': `text/xml`,
+            Authorization: `Basic ${Buffer.from(token).toString('base64')}`,
+          },
+          null,
+          4,
+        )}`,
+      );
+
       ctx.logger.info(`token: ${token}`);
-      ctx.logger.info(`url: ${cb.baseUrl}/createItem?name=${ctx.input.component_id}`)
+      ctx.logger.info(
+        `url: ${cb.baseUrl}/createItem?name=${ctx.input.component_id}`,
+      );
       await axiosInstance({
         method: 'post',
         url: `${cb.baseUrl}/createItem?name=${ctx.input.component_id}`,
@@ -165,7 +175,7 @@ export const createCloudbeesInsielAction = (options: { config: Config }) => {
         },
       });
       ctx.logger.info(`Helm Chart pipeline created`);
-      
+
       ctx.logger.info(`All done successfully!`);
     },
   });

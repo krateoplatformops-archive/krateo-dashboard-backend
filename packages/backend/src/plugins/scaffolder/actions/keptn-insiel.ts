@@ -15,12 +15,14 @@
  */
 import { createTemplateAction } from '@backstage/plugin-scaffolder-backend';
 import { resolveSafeChildPath } from '@backstage/backend-common';
+
 const git = require('isomorphic-git');
 const http = require('isomorphic-git/http/node');
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
+
 import axios from 'axios';
 import * as https from 'https';
 
@@ -55,7 +57,7 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
       const base = url.origin;
       const repoURL = `${base}/${owner}/${repo}`;
 
-      const templateUrl = ctx.baseUrl.replace('/tree/main/', '');
+      const templateUrl = ctx.templateInfo?.baseUrl.replace('/tree/main/', '');
 
       const workDir = await ctx.createTemporaryDirectory();
       const projectDir = resolveSafeChildPath(workDir, 'project');
@@ -74,18 +76,18 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
       // get keptn api
       // const proxy = config.get('proxy');
       // const target = proxy['/keptn-api'].target.replace('api/v1', 'api/controlPlane/v1');
-      const target= process.env.KEPTN_SHIPYARD_URL
+      const target = process.env.KEPTN_SHIPYARD_URL;
 
       const axiosInstance = axios.create({
         httpsAgent: new https.Agent({
           rejectUnauthorized: false,
         }),
-        validateStatus: (status) => {
-          return status < 400
-        }
+        validateStatus: status => {
+          return status < 400;
+        },
       });
 
-      const prjName = ctx.input.component_id.replace(/\s+/g, '-')
+      const prjName = ctx.input.component_id.replace(/\s+/g, '-');
 
       ctx.logger.info(`RepoUrl: ${repoURL}`);
       ctx.logger.info(`Target: ${target}`);
@@ -93,17 +95,19 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
       const headers = {
         'Content-Type': `application/json`,
         'x-token': `${process.env.KEPTN_API_TOKEN}`,
-      }
+      };
       const projectData = {
         gitRemoteURL: `${repoURL}-keptn`,
         gitToken: process.env.GITHUB_TOKEN,
         gitUser: owner,
         name: prjName,
-        shipyard: Buffer.from(fs.readFileSync(path.join(projectDir, 'shipyard.yaml'))).toString('base64'),
-      }
+        shipyard: Buffer.from(
+          fs.readFileSync(path.join(projectDir, 'shipyard.yaml')),
+        ).toString('base64'),
+      };
       const serviceData = {
         serviceName: `${prjName}`,
-      }
+      };
       const projectUrl = `${target}/project`;
       const serviceUrl = `${target}/project/${prjName}/service`;
 
@@ -117,27 +121,31 @@ export const createKeptnProjectInsielAction = (options: { config: Config }) => {
         url: projectUrl,
         data: projectData,
         headers,
-      }).then(async () => {
-        ctx.logger.info(`✅ Project created`);
-
-        // create service
-        ctx.logger.info(`Creating Service`);
-        ctx.logger.info(`Url: ${serviceUrl}`);
-        ctx.logger.info(`Data: ${JSON.stringify(serviceData, null, 4)}`);
-        await axiosInstance({
-          method: 'post',
-          url: serviceUrl,
-          data: serviceData,
-          headers,
-        }).then(() => {
-          ctx.logger.info(`✅ Service created`);
-          ctx.logger.info(`All done successfully! 👍`);
-        }).catch((error) => {
-          ctx.logger.error(`❌ Error creating service: ${error}`);
-        })
-      }).catch((error) => {
-        ctx.logger.error(`❌ Error creating project: ${error}`);
       })
+        .then(async () => {
+          ctx.logger.info(`✅ Project created`);
+
+          // create service
+          ctx.logger.info(`Creating Service`);
+          ctx.logger.info(`Url: ${serviceUrl}`);
+          ctx.logger.info(`Data: ${JSON.stringify(serviceData, null, 4)}`);
+          await axiosInstance({
+            method: 'post',
+            url: serviceUrl,
+            data: serviceData,
+            headers,
+          })
+            .then(() => {
+              ctx.logger.info(`✅ Service created`);
+              ctx.logger.info(`All done successfully! 👍`);
+            })
+            .catch(error => {
+              ctx.logger.error(`❌ Error creating service: ${error}`);
+            });
+        })
+        .catch(error => {
+          ctx.logger.error(`❌ Error creating project: ${error}`);
+        });
     },
   });
 };
