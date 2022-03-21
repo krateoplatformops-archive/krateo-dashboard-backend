@@ -28,7 +28,8 @@ import {
   createRoInsielAction,
   createCloudbeesInsielAction,
   createKeptnProjectInsielAction,
-  createSonarQubeAction
+  createSonarQubeAction,
+  createGbpEnterpriseAction,
 } from './scaffolder/actions';
 
 export default async function createPlugin({
@@ -63,6 +64,7 @@ export default async function createPlugin({
       config,
     }),
     createSonarQubeAction(),
+    createGbpEnterpriseAction(),
   ];
 
   return await createRouter({
@@ -71,6 +73,6 @@ export default async function createPlugin({
     database,
     catalogClient,
     reader,
-    actions
+    actions,
   });
 }

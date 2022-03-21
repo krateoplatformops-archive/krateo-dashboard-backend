@@ -85,7 +85,7 @@ export const createRoInsielAction = () => {
       const base = url.origin;
       const repoURL = `${base}/${owner}/${repo}`;
 
-      const templateUrl = ctx.baseUrl.replace('/tree/main/', '');
+      const templateUrl = ctx.templateInfo?.baseUrl.replace('/tree/main/', '');
 
       const workDir = await ctx.createTemporaryDirectory();
       const helmDir = resolveSafeChildPath(workDir, 'helm-chart');

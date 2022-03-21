@@ -17,9 +17,9 @@ import { createTemplateAction } from '@backstage/plugin-scaffolder-backend';
 import axios from 'axios';
 import * as https from 'https';
 
-export const creategitHubProtectionAction = () => {
+export const createGbpEnterpriseAction = () => {
   return createTemplateAction<{}>({
-    id: 'kerberus:githubprotection',
+    id: 'krateo:gbp-enterprise',
     schema: {
       input: {
         required: ['host'],
@@ -29,6 +29,11 @@ export const creategitHubProtectionAction = () => {
             type: 'string',
             title: 'Host',
             description: 'Host',
+          },
+          gitHubUrl: {
+            type: 'string',
+            title: 'GitHub Url',
+            description: 'GitHub Url',
           },
         },
       },
@@ -46,18 +51,11 @@ export const creategitHubProtectionAction = () => {
         },
       };
 
-      // ctx.logger.info(JSON.stringify(config, null, 2));
-
-      // const fullUrl = `https://${ctx.input.host}`;
-      // const url = new URL(fullUrl);
-      // const owner = url.searchParams.get('owner');
-      // const repo = url.searchParams.get('repo');
-
       // Get GitHub repository Id
       ctx.logger.info(`Setting GitHub branch protection`);
 
       await axiosInstance.delete(
-        `https://api.github.com/repos/${owner}/${repo}/branches/main/protection`,
+        `https://${ctx.input.gitHubUrl}/repos/${owner}/${repo}/branches/main/protection`,
         config,
       );
 

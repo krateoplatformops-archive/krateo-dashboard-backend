@@ -21,3 +21,4 @@ export * from './ro-insiel';
 export * from './cloudbees-insiel';
 export * from './keptn-insiel';
 export * from './sonarqube';
+export * from './gbp-enterprise';

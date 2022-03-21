@@ -497,3 +497,29 @@ apacheAirflow:
   baseUrl: https://your.airflow.instance.com
 
 ldap:
+  providers:
+    - target: ldap://localhost:10389
+      bind:
+        dn: cn=admin,dc=planetexpress,dc=com
+        secret: GoodNewsEveryone
+      users:
+        dn: ou=people,dc=planetexpress,dc=com
+        options:
+          filter: (objectClass=inetOrgPerson)
+          paged:
+            pageSize: 100
+            pagePause: true
+        map:
+          name: uid
+          displayName: cn
+          memberOf: memberOf
+      groups:
+        dn: ou=people,dc=planetexpress,dc=com
+        scope: sub
+        map:
+          name: cn
+          displayName: cn
+          memberOf: memberOf
+          members: member
+        options:
+          filter: (objectClass=group)
