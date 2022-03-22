@@ -22,7 +22,7 @@ export const createGbpEnterpriseAction = () => {
     id: 'krateo:gbp-enterprise',
     schema: {
       input: {
-        required: ['host'],
+        required: [],
         type: 'object',
         properties: {
           host: {
@@ -39,6 +39,8 @@ export const createGbpEnterpriseAction = () => {
       },
     },
     async handler(ctx) {
+      ctx.logger.info(JSON.stringify(ctx.input, null, 4));
+
       const axiosInstance = axios.create({
         httpsAgent: new https.Agent({
           rejectUnauthorized: false,
@@ -50,6 +52,7 @@ export const createGbpEnterpriseAction = () => {
           Authorization: `token ${process.env.GITHUB_TOKEN}`,
         },
       };
+      // ctx.logger.info(JSON.stringify(config));
 
       ctx.logger.info(`Setting GitHub branch protection`);
 
@@ -58,8 +61,12 @@ export const createGbpEnterpriseAction = () => {
       const owner = url.searchParams.get('owner');
       const repo = url.searchParams.get('repo');
 
+      ctx.logger.info(
+        `${ctx.input.gitHubUrl}/repos/${owner}/${repo}/branches/main/protection`,
+      );
+
       await axiosInstance.delete(
-        `https://${ctx.input.gitHubUrl}/repos/${owner}/${repo}/branches/main/protection`,
+        `${ctx.input.gitHubUrl}/repos/${owner}/${repo}/branches/main/protection`,
         config,
       );
 
