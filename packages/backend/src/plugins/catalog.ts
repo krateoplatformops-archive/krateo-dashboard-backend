@@ -35,7 +35,8 @@ export default async function createPlugin(
       logger: env.logger,
     }),
   );
-  builder.addEntityProvider(
+  if (process.env.LDAP_ENABLED === 'true') {
+    builder.addEntityProvider(
       LdapOrgEntityProvider.fromConfig(env.config, {
         id: 'our-ldap-master',
         target: process.env.LDAP_TARGET || 'ldap://localhost:389',
@@ -46,6 +47,7 @@ export default async function createPlugin(
         }),
       }),
     );
+  }
   const { processingEngine, router } = await builder.build();
   await processingEngine.start();
   return router;

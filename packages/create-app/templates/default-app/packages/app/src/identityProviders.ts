@@ -62,12 +62,15 @@ if (process.env.AUTH_MICROSOFT_CLIENT_ID !== '') {
   });
 }
 
-enabledProviders.push({
-  id: 'oidc-auth-provider',
-  title: 'OIDC',
-  message: 'Sign In using OIDC',
-  apiRef: oidcAuthApiRef,
-});
+if (process.env.AUTH_OIDC_CLIENT_ID !== '<clientId>') {
+
+  enabledProviders.push({
+    id: 'oidc-auth-provider',
+    title: 'OIDC',
+    message: 'Sign In using OIDC',
+    apiRef: oidcAuthApiRef,
+  });
+}
 
 export const providers = enabledProviders;
 
