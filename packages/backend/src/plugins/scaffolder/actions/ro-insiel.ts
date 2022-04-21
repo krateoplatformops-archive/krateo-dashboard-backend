@@ -147,20 +147,38 @@ export const createRoInsielAction = () => {
       // push repo
       ctx.logger.info(`${repoURL}-hc`);
       if (isOrganization) {
+        const teams = await octokit.rest.teams.list({
+          org: owner,
+        });
+        const team = teams.data.find((t: any) => t.name === 'interni');
         await octokit.rest.repos.createInOrg({
           org: owner,
           name: `${repo}-hc`,
+          private: true,
+          team_id: team.id,
         });
         await octokit.rest.repos.createInOrg({
           org: owner,
           name: `${repo}-keptn`,
+          private: true,
+          team_id: team.id,
+        });
+        // team permission
+        await octokit.rest.teams.addOrUpdateRepoPermissionsInOrg({
+          org: owner,
+          team_slug: team.slug,
+          owner,
+          repo: `${repo}-keptn`,
+          permission: 'push',
         });
       } else {
         await octokit.rest.repos.createForAuthenticatedUser({
           name: `${repo}-hc`,
+          private: true,
         });
         await octokit.rest.repos.createForAuthenticatedUser({
           name: `${repo}-keptn`,
+          private: true,
         });
       }
       ctx.logger.info(`Created repository: ${repoURL}-hc`);

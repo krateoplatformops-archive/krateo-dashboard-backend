@@ -1,36 +1,29 @@
 app:
-  title: Krateo Platformops
-  baseUrl: http://localhost:3000
-  googleAnalyticsTrackingId: # UA-000000-0
-  #datadogRum:
-  #  clientToken: '123456789'
-  #  applicationId: qwerty
-  #   site: # datadoghq.eu default = datadoghq.com
-  #   env: # optional
-
+  title: Krateo PlatformOps Company - Krateo
+  baseUrl: http://localhost:3000/
+  googleAnalyticsTrackingId:
   support:
     url: https://github.com/backstage/backstage/issues # Used by common ErrorPage
     items: # Used by common SupportButton component
-      - title: Issues
+      - title: GitHub Krateo
         icon: github
         links:
-          - url: https://github.com/backstage/backstage/issues
-            title: GitHub Issues
-      - title: Discord Chatroom
-        icon: chat
-        links:
-          - url: https://discord.gg/MUpMjP2
-            title: "#backstage"
+          - url: https://github.com/krateoplatformops/krateo
+            title: GitHub
+
+organization:
+  name: Krateo PlatformOps Company
 
 backend:
-  # Used for enabling authentication, secret is shared by all backend plugins
-  # See backend-to-backend-auth.md in the docs for information on the format
-  # auth:
-  #   keys:
-  #     - secret: ${BACKEND_SECRET}
   baseUrl: http://localhost:7007
   listen:
     port: 7007
+  csp:
+    connect-src: ["'self'", "http:", "https:"]
+  cors:
+    origin: http://localhost:3000/
+    methods: [GET, POST, PUT, DELETE]
+    credentials: true
   database:
     client: pg
     connection:
@@ -40,31 +33,41 @@ backend:
       password:
   cache:
     store: memory
-  cors:
-    origin: http://localhost:3000
-    methods: [GET, POST, PUT, DELETE]
-    credentials: true
-  csp:
-    connect-src: ["'self'", "http:", "https:"]
-    # Content-Security-Policy directives follow the Helmet format: https://helmetjs.github.io/#reference
-    # Default Helmet Content-Security-Policy values can be removed by setting the key to false
-  reading:
-    allow:
-      - host: example.com
-      - host: "*.mozilla.org"
-  # workingDirectory: /tmp # Use this to configure a working directory for the scaffolder, defaults to the OS temp-dir
 
-# See README.md in the proxy-backend plugin for information on the configuration format
+sonarQube:
+  baseUrl: https://sonarcloud.io/api
+
 proxy:
+  "/argocd/api/applications/name":
+    target: http://krateo-module-core-argocd-server.krateo-system.svc/api/v1/applications
+    changeOrigin: true
+    secure: false
+    headers:
+      Cookie: argocd.token=${ARGOCD_AUTH_TOKEN}
+  "/sonarqube":
+    target: https://sonarcloud.io/api/api
+    allowedMethods: ["GET"]
+    secure: false
+    auth: "${SONARQUBE_AUTH}:"
+  "/grafana/api":
+    target: https://grafana.krateo.io/
+    headers:
+      Authorization: Bearer ${GRAFANA_AUTH}
+  "/prometheus/api":
+    target: https://prometheus.krateo.io/api/v1/
+    secure: false
+    headers:
+      Authorization: Bearer ${PROMETHEUS_TOKEN}
+
   "/circleci/api":
     target: https://circleci.com/api/v1.1
     headers:
       Circle-Token: ${CIRCLECI_AUTH_TOKEN}
-
   "/jenkins/api":
-    target: http://localhost:8080
+    target: https://jenkins.example.com
+    changeOrigin: true
     headers:
-      Authorization: ${JENKINS_BASIC_AUTH_HEADER}
+      Authorization: Basic 123456789abcdef0123456789abcedf012
 
   "/travisci/api":
     target: https://api.travis-ci.com
@@ -106,53 +109,30 @@ proxy:
     headers:
       Authorization: ${AIRFLOW_BASIC_AUTH_HEADER}
 
-  # "/argocd/api":
-  #   target: https://argocd.krateo.io/api/v1/
-  #   changeOrigin: true
-  #   secure: false
-  #   headers:
-  #     Cookie: "argocd.token="
-
-  "/argocd/api/applications/name":
-    target: https://argocd.krateo.io/api/v1/applications
-    changeOrigin: true
-    secure: false
-    headers:
-      Cookie: "argocd.token="
-
-  "/keptn-api":
-    target: http://keptn.krateo.io/api/v1/
-    secure: false
-    headers:
-      x-token: "<token>"
-
   "/keptn":
-    target: http://keptn.krateo.io/bridge/api/
+    target: http://keptn.krateoplatformops.io/api/
     secure: false
     headers:
-      Authorization: "Basic <base_64_token>"
+      x-token: ${KEPTN_API_TOKEN}
 
-  "/prometheus/api":
-    target: https://prometheus.krateo.io/api/v1/
-    secure: false
-    headers:
-      Authorization: Bearer ${PROMETHEUS_TOKEN}
+grafana:
+  domain: https://grafana.krateo.io/
 
-organization:
-  name: My Company
+integrations:
+  github:
+    - host: github.com
 
-# Reference documentation http://backstage.io/docs/features/techdocs/configuration
-# Note: After experimenting with basic setup, use CI/CD to generate docs
-# and an external cloud storage when deploying TechDocs for production use-case.
-# https://backstage.io/docs/features/techdocs/how-to-guides#how-to-migrate-from-techdocs-basic-to-recommended-deployment-approach
-techdocs:
-  builder: "local" # Alternatives - 'external'
-  generator:
-    runIn: "docker"
-    # dockerImage: my-org/techdocs # use a custom docker image
-    # pullImage: true # or false to disable automatic pulling of image (e.g. if custom docker login is required)
-  publisher:
-    type: "local" # Alternatives - 'googleGcs' or 'awsS3' or 'azureBlobStorage' or 'openStackSwift'. Read documentation for using alternatives.
+      token: ${GITHUB_TOKEN}
+  gitlab:
+    - host: gitlab.com
+      token: ${GITLAB_TOKEN}
+  bitbucket:
+    - host: bitbucket.org
+      username: ${BITBUCKET_USERNAME}
+      appPassword: ${BITBUCKET_APP_PASSWORD}
+  azure:
+    - host: dev.azure.com
+      token: ${AZURE_TOKEN}
 
 sentry:
   organization: my-company
@@ -162,210 +142,36 @@ rollbar:
   # NOTE: The rollbar-backend & accountToken key may be deprecated in the future (replaced by a proxy config)
   accountToken: my-rollbar-account-token
 
-lighthouse:
-  baseUrl: http://localhost:3003
-
-kubernetes:
-  serviceLocatorMethod:
-    type: "multiTenant"
-  clusterLocatorMethods:
-    - type: "config"
-      clusters: []
-
-kafka:
-  clientId: backstage
-  clusters:
-    - name: cluster
-      brokers:
-        - localhost:9092
-
-allure:
-  baseUrl: http://localhost:5050/allure-docker-service
-
-integrations:
-  github:
-    - host: github.com
-      token: ${GITHUB_TOKEN}
-    ### Example for how to add your GitHub Enterprise instance using the API:
-    # - host: ghe.example.net
-    #   apiBaseUrl: https://ghe.example.net/api/v3
-    #   token: ${GHE_TOKEN}
-    ### Example for how to add your GitHub Enterprise instance using raw HTTP fetches (token is optional):
-    # - host: ghe.example.net
-    #   rawBaseUrl: https://ghe.example.net/raw
-    #   token: ${GHE_TOKEN}
-  gitlab:
-    - host: gitlab.com
-      token: ${GITLAB_TOKEN}
-  bitbucket:
-    - host: bitbucket.org
-      username: ${BITBUCKET_USERNAME}
-      appPassword: ${BITBUCKET_APP_PASSWORD}
-    ### Example for how to add your bitbucket server instance using the API:
-    # - host: server.bitbucket.com
-    #   apiBaseUrl: server.bitbucket.com
-    #   username: ${BITBUCKET_SERVER_USERNAME}
-    #   appPassword: ${BITBUCKET_SERVER_APP_PASSWORD}
-  azure:
-    - host: dev.azure.com
-      token: ${AZURE_TOKEN}
-  #  googleGcs:
-  #    clientEmail: 'example@example.com'
-  #    privateKey: ${GCS_PRIVATE_KEY}
-  awsS3:
-    - host: amazonaws.com
-      accessKeyId: ${AWS_ACCESS_KEY_ID}
-      secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
-
-catalog:
-  rules:
-    - allow:
-        - Component
-        - API
-        - Resource
-        - Group
-        - User
-        - Template
-        - System
-        - Domain
-        - Location
-
-  processors:
-    githubOrg:
-      providers:
-        - target: https://github.com
-          token: ${GITHUB_TOKEN}
-        #### Example for how to add your GitHub Enterprise instance using the API:
-        # - target: https://ghe.example.net
-        #   apiBaseUrl: https://ghe.example.net/api
-        #   token: ${GHE_TOKEN}
-    # ldapOrg:
-    #   ### Example for how to add your enterprise LDAP server
-    #   providers:
-    #     - target: ldap://localhost:10389
-    #       bind:
-    #         dn: cn=admin,dc=planetexpress,dc=com
-    #         secret: GoodNewsEveryone
-    #       users:
-    #         dn: ou=people,dc=planetexpress,dc=com
-    #         # options:
-    #         #   filter: (uid=*)
-    #         # map:
-    #         #   description: l
-    #       groups:
-    #         dn: ou=people,dc=planetexpress,dc=com
-    ### Example for how to add your enterprise LDAP server
-    # providers:
-    #   - target: ldaps://ds.example.net
-    #     bind:
-    #       dn: uid=ldap-reader-user,ou=people,ou=example,dc=example,dc=net
-    #       secret: ${LDAP_SECRET}
-    #     users:
-    #       dn: ou=people,ou=example,dc=example,dc=net
-    #       options:
-    #         filter: (uid=*)
-    #       map:
-    #         description: l
-    #     groups:
-    #       dn: ou=access,ou=groups,ou=example,dc=example,dc=net
-    #       options:
-    #         filter: (&(objectClass=some-group-class)(!(groupType=email)))
-    microsoftGraphOrg:
-      ### Example for how to add your Microsoft Graph tenant
-      #providers:
-      #  - target: https://graph.microsoft.com/v1.0
-      #    authority: https://login.microsoftonline.com
-      #    tenantId: ${MICROSOFT_GRAPH_TENANT_ID}
-      #    clientId: ${MICROSOFT_GRAPH_CLIENT_ID}
-      #    clientSecret: ${MICROSOFT_GRAPH_CLIENT_SECRET_TOKEN}
-      #    userFilter: accountEnabled eq true and userType eq 'member'
-      #    groupFilter: securityEnabled eq false and mailEnabled eq true and groupTypes/any(c:c+eq+'Unified')
-
-  locations:
-    # Add a location here to ingest it, for example from a URL:
-    #
-    #     - type: url
-    #       target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all-components.yaml
-    #
-    # For local development you can use a file location instead:
-    #
-    #     - type: file
-    #       target: ../catalog-model/examples/all-components.yaml
-    #
-    # File locations are relative to the current working directory of the
-    # backend, for example packages/backend/.
-
-    # Backstage example components
-    - type: file
-      target: ../catalog-model/examples/all-components.yaml
-    # Example component for github-actions and TechDocs
-    - type: file
-      target: ../../plugins/github-actions/examples/sample.yaml
-    # Example component for TechDocs
-    - type: file
-      target: ../../plugins/techdocs-backend/examples/documented-component/catalog-info.yaml
-    # Backstage example APIs
-    - type: file
-      target: ../catalog-model/examples/all-apis.yaml
-    # Backstage example resources
-    - type: file
-      target: ../catalog-model/examples/all-resources.yaml
-    # Backstage example systems
-    - type: file
-      target: ../catalog-model/examples/all-systems.yaml
-    # Backstage example domains
-    - type: file
-      target: ../catalog-model/examples/all-domains.yaml
-    # Backstage example templates
-    - type: file
-      target: ../../plugins/scaffolder-backend/sample-templates/all-templates.yaml
-    # Backstage example groups and users
-    - type: file
-      target: ../catalog-model/examples/acme-corp.yaml
-    # Backstage end-to-end tests of TechDocs
-    - type: file
-      target: ../../cypress/e2e-fixture.catalog.info.yaml
-scaffolder:
-  # Use to customize default commit author info used when new components are created
-  # defaultAuthor:
-  #   name: Scaffolder
-  #   email: scaffolder@backstage.io
-  # Use to customize the default commit message when new components are created
-  # defaultCommitMessage: 'Initial commit'
+techdocs:
+  builder: "local" # Alternatives - 'external'
+  generator:
+    runIn: "local" # Alternatives - 'local'
+  publisher:
+    type: "local"
 
 auth:
-  ### Add auth.keyStore.provider to more granularly control how to store JWK data when running
-  # the auth-backend.
-  #
-  # keyStore:
-  #  provider: firestore
-  #  firestore:
-  #    projectId: my-project
-  #    path: my-sessions
-
-  environment: development
-  ### Providing an auth.session.secret will enable session support in the auth-backend
-  # session:
-  #   secret: custom session secret
   providers:
+    guest:
+      enabled: ${AUTH_GUEST}
     google:
       development:
         clientId: ${AUTH_GOOGLE_CLIENT_ID}
         clientSecret: ${AUTH_GOOGLE_CLIENT_SECRET}
     github:
       development:
+        appOrigin: https://localhost/
+        secure: false
         clientId: ${AUTH_GITHUB_CLIENT_ID}
         clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
-        enterpriseInstanceUrl: ${AUTH_GITHUB_ENTERPRISE_INSTANCE_URL}
+
     gitlab:
       development:
         clientId: ${AUTH_GITLAB_CLIENT_ID}
         clientSecret: ${AUTH_GITLAB_CLIENT_SECRET}
         audience: ${GITLAB_BASE_URL}
     saml:
-      entryPoint: "http://localhost:7001/"
-      issuer: "passport-saml"
-      cert: "fake-cert-base64"
+      entryPoint: ${AUTH_SAML_ENTRY_POINT}
+      issuer: ${AUTH_SAML_ISSUER}
     okta:
       development:
         clientId: ${AUTH_OKTA_CLIENT_ID}
@@ -382,20 +188,13 @@ auth:
         #
         # scope: saml-login-selector openid profile email
     oidc:
-      # Note that you must define a session secret (see above) since the oidc provider requires session support.
-      # Note that by default, this provider will use the 'none' prompt which assumes that your are already logged on in the IDP.
-      # You should set prompt to:
-      # - auto: will let the IDP decide if you need to log on or if you can skip login when you have an active SSO session
-      # - login: will force the IDP to always present a login form to the user
       development:
-        metadataUrl: ${AUTH_OIDC_METADATA_URL}
+        metadataUrl: <metadataUrl>
         clientId: ${AUTH_OIDC_CLIENT_ID}
         clientSecret: ${AUTH_OIDC_CLIENT_SECRET}
         authorizationUrl: ${AUTH_OIDC_AUTH_URL}
         tokenUrl: ${AUTH_OIDC_TOKEN_URL}
-        tokenSignedResponseAlg: ${AUTH_OIDC_TOKEN_SIGNED_RESPONSE_ALG} # default='RS256'
-        scope: ${AUTH_OIDC_SCOPE} # default='openid profile email'
-        prompt: ${AUTH_OIDC_PROMPT} # default=none (allowed values: auto, none, consent, login)
+        tokenSignedResponseAlg: ${AUTH_OIDC_TOKEN_SIGNED_RESPONSE_ALG}
     auth0:
       development:
         clientId: ${AUTH_AUTH0_CLIENT_ID}
@@ -411,15 +210,84 @@ auth:
         clientId: ${AUTH_ONELOGIN_CLIENT_ID}
         clientSecret: ${AUTH_ONELOGIN_CLIENT_SECRET}
         issuer: ${AUTH_ONELOGIN_ISSUER}
-    bitbucket:
-      development:
-        clientId: ${AUTH_BITBUCKET_CLIENT_ID}
-        clientSecret: ${AUTH_BITBUCKET_CLIENT_SECRET}
-    atlassian:
-      development:
-        clientId: ${AUTH_ATLASSIAN_CLIENT_ID}
-        clientSecret: ${AUTH_ATLASSIAN_CLIENT_SECRET}
-        scopes: ${AUTH_ATLASSIAN_SCOPES}
+
+scaffolder:
+  github:
+    token: ${GITHUB_TOKEN}
+    visibility: public # or 'internal' or 'private'
+
+catalog:
+  import:
+    entityFilename: catalog-info.yaml
+    pullRequestBranchName: backstage-integration
+  rules:
+    - allow:
+        [
+          Component,
+          System,
+          API,
+          Group,
+          User,
+          Resource,
+          Location,
+          Domain,
+          Template,
+        ]
+  processors:
+
+  locations:
+    - type: microsoft-graph-org
+      target: https://graph.microsoft.com/v1.0
+      rules:
+        - allow: [Group, User]
+
+kubernetes:
+  customResources:
+  serviceLocatorMethod:
+    type: "multiTenant"
+  clusterLocatorMethods:
+    - type: "config"
+      clusters:
+        - name: "local"
+          url: "http://localhost:6443"
+          serviceAccountToken: a
+          skipTLSVerify: false
+          authProvider: "serviceAccount"
+
+lighthouse:
+  baseUrl: http://localhost:3003
+
+kafka:
+  clientId: backstage
+  clusters:
+    - name: cluster
+      brokers:
+        - localhost:9092
+
+allure:
+  baseUrl: http://localhost:5050/allure-docker-service
+
+pagerduty:
+  eventsBaseUrl: "https://events.pagerduty.com/v2"
+jenkins:
+  instances:
+    - name: "default"
+      baseUrl: "https://jenkins.example.com"
+      username: "backstage-bot"
+      apiKey: "123456789abcdef0123456789abcedf012"
+    - name: "departmentFoo"
+      baseUrl: "https://jenkins-foo.example.com"
+      username: "backstage-bot"
+      apiKey: "123456789abcdef0123456789abcedf012"
+
+azureDevOps:
+  host: dev.azure.com
+  token: my-token
+  organization: my-company
+
+apacheAirflow:
+  baseUrl: https://your.airflow.instance.com
+
 costInsights:
   engineerCost: 200000
   products:
@@ -469,6 +337,7 @@ costInsights:
       kind: "PINTS_OF_ICE_CREAM"
       unit: "ice cream pint"
       rate: 5.5
+
 homepage:
   clocks:
     - label: UTC
@@ -479,47 +348,9 @@ homepage:
       timezone: "Europe/Stockholm"
     - label: TYO
       timezone: "Asia/Tokyo"
-pagerduty:
-  eventsBaseUrl: "https://events.pagerduty.com/v2"
-jenkins:
-  instances:
-    - name: default
-      baseUrl: https://jenkins.example.com
-      username: backstage-bot
-      apiKey: 123456789abcdef0123456789abcedf012
-
-azureDevOps:
-  host: dev.azure.com
-  token: my-token
-  organization: my-company
-
-apacheAirflow:
-  baseUrl: https://your.airflow.instance.com
 
 ldap:
   providers:
-    - target: ldap://localhost:10389
-      bind:
-        dn: cn=admin,dc=planetexpress,dc=com
-        secret: GoodNewsEveryone
-      users:
-        dn: ou=people,dc=planetexpress,dc=com
-        options:
-          filter: (objectClass=inetOrgPerson)
-          paged:
-            pageSize: 100
-            pagePause: true
-        map:
-          name: uid
-          displayName: cn
-          memberOf: memberOf
-      groups:
-        dn: ou=people,dc=planetexpress,dc=com
-        scope: sub
-        map:
-          name: cn
-          displayName: cn
-          memberOf: memberOf
-          members: member
-        options:
-          filter: (objectClass=group)
+
+gocd:
+  baseUrl: https://your.gocd.instance.com

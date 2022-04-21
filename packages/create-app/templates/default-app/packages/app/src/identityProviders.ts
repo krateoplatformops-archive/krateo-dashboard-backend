@@ -37,14 +37,14 @@ if (process.env.AUTH_GUEST === 'true') {
 
 // enabledProviders.push('custom');
 
-// if (process.env.AUTH_GITHUB_CLIENT_ID !== '') {
-//   enabledProviders.push({
-//     id: 'github-auth-provider',
-//     title: 'GitHub',
-//     message: 'Sign In using GitHub',
-//     apiRef: githubAuthApiRef,
-//   });
-// }
+if (process.env.AUTH_GITHUB_CLIENT_ID !== '') {
+  enabledProviders.push({
+    id: 'github-auth-provider',
+    title: 'GitHub',
+    message: 'Sign In using GitHub',
+    apiRef: githubAuthApiRef,
+  });
+}
 // if (process.env.AUTH_GITLAB_CLIENT_ID !== '') {
 //   enabledProviders.push({
 //     id: 'gitlab-auth-provider',
@@ -63,7 +63,6 @@ if (process.env.AUTH_MICROSOFT_CLIENT_ID !== '') {
 }
 
 if (process.env.AUTH_OIDC_CLIENT_ID !== '<clientId>') {
-
   enabledProviders.push({
     id: 'oidc-auth-provider',
     title: 'OIDC',
