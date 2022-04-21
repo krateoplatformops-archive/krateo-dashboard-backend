@@ -161,14 +161,20 @@ export const createRoInsielAction = () => {
           org: owner,
           name: `${repo}-keptn`,
           private: true,
-          team_id: team.id,
         });
         // team permission
         await octokit.rest.teams.addOrUpdateRepoPermissionsInOrg({
           org: owner,
           team_slug: team.slug,
           owner,
-          repo: `${repo}-keptn`,
+          repo: `${repo}-hc`,
+          permission: 'push',
+        });
+        await octokit.rest.teams.addOrUpdateRepoPermissionsInOrg({
+          org: owner,
+          team_slug: team.slug,
+          owner,
+          repo,
           permission: 'push',
         });
       } else {
