@@ -32,6 +32,10 @@ RUN useradd -g 0 krateobackend
 RUN chown -R krateobackend:0 /usr/src/app
 RUN chmod -R 770 /usr/src/app
 
+RUN mkdir /temp
+RUN chown -R krateobackend:0 /temp
+RUN chmod -R 770 /temp
+
 USER krateobackend
 
 # This will copy the contents of the dist-workspace when running the build-image command.
