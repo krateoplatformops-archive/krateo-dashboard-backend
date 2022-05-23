@@ -32,7 +32,7 @@ RUN useradd -g 0 krateobackend
 RUN chown -R krateobackend:0 /usr/src/app
 RUN chmod -R 770 /usr/src/app
 
-RUN mkdir /temp
+RUN mkdir -p /temp/docs
 RUN chown -R krateobackend:0 /temp
 RUN chmod -R 770 /temp
 
