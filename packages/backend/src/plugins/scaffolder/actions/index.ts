@@ -20,6 +20,7 @@ export * from './keptn';
 export * from './ro-insiel';
 export * from './ro-insiel-tomcat';
 export * from './cloudbees-insiel';
+export * from './cloudbees-insiel-tomcat';
 export * from './keptn-insiel';
 export * from './sonarqube';
 export * from './gbp-enterprise';
