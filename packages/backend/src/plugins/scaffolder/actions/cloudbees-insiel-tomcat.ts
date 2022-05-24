@@ -29,7 +29,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 // const util = require('util');
 
-export const createCloudbeesInsielAction = (options: { config: Config }) => {
+export const createCloudbeesInsielTomcatAction = (options: { config: Config }) => {
   const { config } = options;
 
   return createTemplateAction<{
