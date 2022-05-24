@@ -28,6 +28,7 @@ import {
   createRoInsielAction,
   createRoInsielTomcatAction,
   createCloudbeesInsielAction,
+  createCloudbeesInsielTomcatAction,
   createKeptnProjectInsielAction,
   createSonarQubeAction,
   createGbpEnterpriseAction,
@@ -60,6 +61,9 @@ export default async function createPlugin({
     createRoInsielAction(),
     createRoInsielTomcatAction(),
     createCloudbeesInsielAction({
+      config,
+    }),
+    createCloudbeesInsielTomcatAction({
       config,
     }),
     createKeptnProjectInsielAction({
