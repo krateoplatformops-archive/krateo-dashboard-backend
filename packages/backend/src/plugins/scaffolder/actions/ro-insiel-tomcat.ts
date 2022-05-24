@@ -1,0 +1,238 @@
+/* eslint-disable prefer-template */
+/*
+ * Copyright 2022 The Backstage Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { createTemplateAction } from '@backstage/plugin-scaffolder-backend';
+import { resolveSafeChildPath } from '@backstage/backend-common';
+
+const git = require('isomorphic-git');
+const http = require('isomorphic-git/http/node');
+const fs = require('fs');
+const path = require('path');
+const nunjucks = require('nunjucks');
+const { Octokit } = require('@octokit/rest');
+
+const util = require('util');
+
+const getAllFiles = (dirPath: string, arrayOfFiles: any[] | null) => {
+  const files = fs.readdirSync(dirPath);
+
+  // eslint-disable-next-line no-param-reassign
+  arrayOfFiles = arrayOfFiles || [];
+
+  files.forEach((file: string) => {
+    if (file !== '.git') {
+      if (fs.statSync(dirPath + '/' + file).isDirectory()) {
+        // eslint-disable-next-line no-param-reassign
+        arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles);
+      } else {
+        arrayOfFiles.push(path.join(dirPath, '/', file));
+      }
+    }
+  });
+
+  return arrayOfFiles;
+};
+
+export const createRoInsielTomcatAction = () => {
+  return createTemplateAction<{
+    host: string;
+    component_id: string;
+    gitHubUrl: string;
+  }>({
+    id: 'krateo:ro-insiel-tomcat',
+    schema: {
+      input: {
+        required: ['host', 'component_id', 'gitHubUrl'],
+        type: 'object',
+        properties: {
+          host: {
+            type: 'string',
+            title: 'Host',
+            description: 'Host',
+          },
+          component_id: {
+            type: 'string',
+            title: 'Component Id',
+            description: 'Component Id',
+          },
+          gitHubUrl: {
+            type: 'string',
+            title: 'GitHub Url',
+            description: 'GitHub Url',
+          },
+        },
+      },
+    },
+    async handler(ctx) {
+      const fullUrl = `https://${ctx.input.host}`;
+      const url = new URL(fullUrl);
+      const owner = url.searchParams.get('owner');
+      const repo = url.searchParams.get('repo');
+      const base = url.origin;
+      const repoURL = `${base}/${owner}/${repo}`;
+
+      const templateUrl = ctx.templateInfo?.baseUrl.replace('/tree/main/', '');
+
+      ctx.logger.info(templateUrl);
+
+      const workDir = await ctx.createTemporaryDirectory();
+      const cfgDir = resolveSafeChildPath(workDir, 'cfg-files');
+
+      ctx.logger.info(`Created temporary directory: ${workDir}`);
+      ctx.logger.info(`Configurations directory: ${cfgDir}`);
+
+      await git.clone({
+        fs,
+        http,
+        dir: workDir,
+        url: templateUrl,
+        onAuth: () => ({ username: process.env.GITHUB_TOKEN }),
+        ref: 'main',
+        singleBranch: true,
+        depth: 1,
+      });
+
+      // template
+      const files = getAllFiles(cfgDir, null);
+      nunjucks.configure(cfgDir, {
+        noCache: true,
+        autoescape: true,
+        tags: { variableStart: '${{' },
+      });
+      files.forEach((f: any) => {
+        const original = fs.readFileSync(f, { encoding: 'base64' });
+
+        if (original.length > 0) {
+          ctx.logger.info(`Processing file: ${f}`);
+          const modified = nunjucks.render(f.replace(`${cfgDir}/`, ''), {
+            component_id: ctx.input.component_id,
+          });
+
+          if (original !== Buffer.from(modified, 'utf-8').toString('base64')) {
+            fs.writeFileSync(f, modified, { encoding: 'utf-8' });
+          }
+        }
+      });
+
+      // check if is organization
+      const octokit = new Octokit({
+        auth: process.env.GITHUB_TOKEN,
+        baseUrl: ctx.input.gitHubUrl,
+      });
+      let isOrganization = false;
+      try {
+        await octokit.rest.repos.listForOrg({
+          org: owner,
+        });
+        isOrganization = true;
+        ctx.logger.info(`Destination repo is org`);
+      } catch (err) {
+        ctx.logger.info(`Destination repo is not org`);
+      }
+
+      // push repo
+      ctx.logger.info(`${repoURL}-cfg`);
+      if (isOrganization) {
+        const teams = await octokit.rest.teams.list({
+          org: owner,
+        });
+        const team = teams.data.find((t: any) => t.name === 'interni');
+        await octokit.rest.repos.createInOrg({
+          org: owner,
+          name: `${repo}-cfg`,
+          private: true,
+          team_id: team.id,
+        });
+        await octokit.rest.repos.createInOrg({
+          org: owner,
+          name: `${repo}-keptn`,
+          private: true,
+        });
+        // team permission
+        await octokit.rest.teams.addOrUpdateRepoPermissionsInOrg({
+          org: owner,
+          team_slug: team.slug,
+          owner,
+          repo: `${repo}-cfg`,
+          permission: 'push',
+        });
+        await octokit.rest.teams.addOrUpdateRepoPermissionsInOrg({
+          org: owner,
+          team_slug: team.slug,
+          owner,
+          repo,
+          permission: 'push',
+        });
+      } else {
+        await octokit.rest.repos.createForAuthenticatedUser({
+          name: `${repo}-cfg`,
+          private: true,
+        });
+        await octokit.rest.repos.createForAuthenticatedUser({
+          name: `${repo}-keptn`,
+          private: true,
+        });
+      }
+      ctx.logger.info(`Created repository: ${repoURL}-cfg`);
+      ctx.logger.info(`Created repository: ${repoURL}-keptn`);
+
+      await git.init({ fs, dir: cfgDir, defaultBranch: 'main' });
+      ctx.logger.info(`Init`);
+      await git.add({ fs, dir: cfgDir, filepath: '.' });
+      ctx.logger.info(`Add *`);
+      await git.commit({
+        fs,
+        dir: cfgDir,
+        author: {
+          name: 'Scaffolder',
+          email: '',
+        },
+        message: 'initial commit',
+      });
+      ctx.logger.info(`Commit`);
+      await git.addRemote({
+        fs,
+        dir: cfgDir,
+        remote: 'origin',
+        url: `${repoURL}-cfg.git`,
+      });
+      ctx.logger.info(`Add remote ${repoURL}-cfg.git`);
+      await git
+        .push({
+          fs,
+          http,
+          dir: cfgDir,
+          remote: 'origin',
+          ref: 'main',
+          onAuth: () => ({ username: process.env.GITHUB_TOKEN }),
+          onProgress: (state: any) => {
+            try {
+              ctx.logger.info(`Pushing ${state.phase}`);
+            } catch (e) {
+              ctx.logger.error(e);
+            }
+          },
+        })
+        .catch((err: any) => {
+          ctx.logger.error(`❌ Push progress failed: ${err}`);
+        });
+      ctx.logger.info(`Push`);
+
+      ctx.logger.info(`Well done, pushed successfully!`);
+    },
+  });
+};

@@ -26,6 +26,7 @@ import {
   createSonarCloudAction,
   createKeptnProjectAction,
   createRoInsielAction,
+  createRoInsielTomcatAction,
   createCloudbeesInsielAction,
   createKeptnProjectInsielAction,
   createSonarQubeAction,
@@ -57,6 +58,7 @@ export default async function createPlugin({
     creategitHubProtectionAction(),
     createKeptnProjectAction(),
     createRoInsielAction(),
+    createRoInsielTomcatAction(),
     createCloudbeesInsielAction({
       config,
     }),
